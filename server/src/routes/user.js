@@ -3,6 +3,8 @@ import { userSchema } from "../helper/userSchema.js";
 import insertUser from "../helper/insertUser.js";
 import { verifyUser } from "../helper/verifyUser.js";
 import { generateToken } from "../helper/jwt.js";
+import { authenticate } from "../middlewares/authenticate.js";
+import { prisma } from "../helper/pooler.js";
 const router = Router();
 
 
@@ -70,6 +72,29 @@ router.post("/signin",async(req,res)=>{
     {
         console.error(e)
         return res.json({"msg":"Error in signing in"});
+    }
+})
+
+router.get("/me" , authenticate , async(req,res)=>{
+    try{
+        const userId = req.user.id;
+        const user = await prisma.user.findFirst({
+            where:{
+                id:userId,
+            },
+            select:{
+                id:true,
+                email:true,
+                firstName:true,
+                lastName:true,
+                isAdmin:true
+            }
+        })
+        res.json({"user":user});
+    }
+    catch(e)
+    {
+        res.send("Error in authenticating");
     }
 })
 
