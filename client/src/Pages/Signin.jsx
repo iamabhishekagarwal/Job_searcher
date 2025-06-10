@@ -1,6 +1,9 @@
 import { useState } from 'react';
+import { axiosInstance } from '../axios';
+import {useNavigate} from 'react-router-dom' 
 
 function SignIn() {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     email: '',
     password: ''
@@ -14,10 +17,24 @@ function SignIn() {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async(e) => {
     e.preventDefault();
     console.log('Signing in with:', formData);
-    // Handle sign-in logic (API call, validation, etc.)
+    try{
+        const res = await axiosInstance.post("/api/user/signin" , {email:formData.email , password:formData.password})
+        console.log(res.data);
+        if(res.status === 200)
+        {
+          navigate("/")
+        }
+        else{
+          console.error("Unexpected response status:", res.status);
+        }
+    }
+    catch(e)
+    {
+      console.error("Error in signing in:", e);
+    }
   };
 
   return (

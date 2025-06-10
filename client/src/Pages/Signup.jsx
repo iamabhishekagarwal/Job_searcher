@@ -1,6 +1,12 @@
 import { useState } from 'react';
+import { axiosInstance } from '../axios';
+import { useNavigate } from 'react-router-dom';
+import { useSetRecoilState } from 'recoil';
+import { userState } from '../../atoms';
 
 function Signup() {
+  const setUser = useSetRecoilState(userState)
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -16,10 +22,31 @@ function Signup() {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async(e) => {
     e.preventDefault();
     console.log('Form Data:', formData);
-    // Handle signup logic or API call here
+    try{
+      const res = await axiosInstance.post("/api/user/signup",{fname:formData.firstName,lname:formData.lastName,
+        email:formData.email,password:formData.password})
+      if(res.data.success)
+      {
+        setUser({
+          id:res.data.user.id,
+          fname:res.data.user.firstName,
+          lname:res.data.user.lastName,
+          email:res.data.user.email,
+          isAdmin:res.data.user.isAdmin
+        })
+        navigate("/");
+      }
+      else{
+      console.error("Error in status code ",res.status);
+      }
+    }
+    catch(e)
+    {
+      console.log(e);
+    }
   };
 
   return (

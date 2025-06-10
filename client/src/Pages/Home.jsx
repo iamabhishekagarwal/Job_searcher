@@ -1,8 +1,11 @@
 import React from 'react'
+import { useRecoilValue } from 'recoil'
+import { userState } from '../../atoms'
 
 function Home() {
+    const user = useRecoilValue(userState)
   return (
-    <div>Home</div>
+    <div className='text-gray-950'>{user.fname}</div>
   )
 }
 
