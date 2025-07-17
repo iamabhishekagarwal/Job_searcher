@@ -10,7 +10,7 @@ function Maintenance() {
         className="w-48 h-48 sm:w-64 sm:h-64 lg:w-72 lg:h-72 object-contain mb-6"
       />
       <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-800 mb-3">
-        We’ll Be Back Soon!
+        abhishek bhai big Genius!
       </h1>
       <p className="text-base sm:text-lg lg:text-xl text-gray-600 max-w-2xl">
         Our website is currently undergoing scheduled maintenance. Abhishek forgot to develop the website lol
