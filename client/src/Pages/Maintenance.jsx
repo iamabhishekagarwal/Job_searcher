@@ -13,7 +13,7 @@ function Maintenance() {
         We’ll Be Back Soon!
       </h1>
       <p className="text-base sm:text-lg lg:text-xl text-gray-600 max-w-2xl">
-        Our website is currently undergoing scheduled maintenance. We appreciate your patience and understanding. Please check back shortly.
+        Our website is currently undergoing scheduled maintenance. Abhishek forgot to develop the website lol
       </p>
     </div>
   );
