@@ -12,7 +12,7 @@ export async function verifyUser(email,password) {
 	}
        const isPasswordValid = await bcrypt.compare(password,user.password) 
        if(isPasswordValid){
-        return {id:user.id ,firstName : user.firstName , LastName : user.lastName,email:user.email,isAdmin:user.isAdmin}
+        return {id:user.id ,firstName : user.firstName , LastName : user.lastName,email:user.email,isAdmin:user.isAdmin,role:user.role}
        }
        else{
         return null}
