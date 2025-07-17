@@ -9,12 +9,13 @@ const router = Router();
 
 
 router.post("/signup" , async(req,res)=>{
-    const {fname , lname ,email,password} = req.body;
+    const {fname , lname ,email,password,role} = req.body;
     const inputValidation = userSchema.safeParse({
         firstName:fname,
         lastName:lname,
         email:email,
-        password:password
+        password:password,
+        role:role
     })
     if(!inputValidation.success)
     {
@@ -32,7 +33,7 @@ router.post("/signup" , async(req,res)=>{
             });
             return res.json({success:false,"msg":"User already exists"})
         }
-        const createUser = await insertUser(fname,lname,email,password)
+        const createUser = await insertUser(fname,lname,email,password,role)
         return res.status(200).json({success:true,"user":createUser})
         
     }
@@ -42,7 +43,7 @@ router.post("/signup" , async(req,res)=>{
 })
 
 router.post("/signin", async(req, res) => {
-    const {email, password} = req.body;
+    const {email, password,role} = req.body;
     const inputValidation = userSchema.safeParse({email, password});
     
     if(!inputValidation.success) {
@@ -76,7 +77,8 @@ router.post("/signin", async(req, res) => {
                 firstName: user.firstName,
                 lastName: user.LastName,
                 email: user.email,
-                isAdmin: user.isAdmin
+                isAdmin: user.isAdmin,
+                role:user.role
             }
         });
     } catch(e) {
@@ -87,9 +89,26 @@ router.post("/signin", async(req, res) => {
         });
     }
 });
+
+router.get("/logout",authenticate,async(req,res)=>{
+    try{
+        res.clearCookie("token",{
+            httpOnly:true,
+            secure:process.env.NODE_ENV === "production",
+            sameSite:"None"
+        })
+        res.status(200).json({"success" : true, "message" : "Logged out successfully!"})
+    }
+    catch(e)
+    {
+        res.status(500).json({"success":false , "message":"Internal Server Error!"})
+    }
+})
+
 router.get("/me" , authenticate , async(req,res)=>{
     try{
-        const userId = req.user.id;
+        console.log(req.user)
+        const userId = req.user.userId;
         const user = await prisma.user.findFirst({
             where:{
                 id:userId,
@@ -99,7 +118,8 @@ router.get("/me" , authenticate , async(req,res)=>{
                 email:true,
                 firstName:true,
                 lastName:true,
-                isAdmin:true
+                isAdmin:true,
+                role:true
             }
         })
         res.json({"user":user});

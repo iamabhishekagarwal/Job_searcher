@@ -10,7 +10,8 @@ export const userState = atom({
         fname:"",
         lname:"",
         email:"",
-        isAdmin:false
+        isAdmin:false,
+        role:"Employee"
     },
     effects_UNSTABLE:[persistAtom]
 })
