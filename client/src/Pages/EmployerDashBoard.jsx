@@ -1,25 +1,14 @@
 import React, { useState } from "react";
+import { PlusCircle, Trash2, Briefcase } from "lucide-react";
+import jobCategories from "../data/jobTitles.json"; // adjust the path if needed
 
 function EmployerDashBoard() {
-  const [jobs, setJobs] = useState([
-    {
-      id: 1,
-      title: "Frontend Developer",
-      description: "Looking for a React developer with 2+ years experience.",
-      location: "Bangalore",
-    },
-    {
-      id: 2,
-      title: "Backend Developer",
-      description: "Node.js developer with knowledge of databases.",
-      location: "Remote",
-    },
-  ]);
-
+  const [jobs, setJobs] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState("");
   const [newJob, setNewJob] = useState({
     title: "",
     description: "",
-    location: "",
+    location: ""
   });
 
   const handleDelete = (id) => {
@@ -28,78 +17,129 @@ function EmployerDashBoard() {
 
   const handleAdd = (e) => {
     e.preventDefault();
-    if (!newJob.title || !newJob.description || !newJob.location) return;
+    if (!selectedCategory || !newJob.title || !newJob.description || !newJob.location) return;
 
     const newId = jobs.length ? jobs[jobs.length - 1].id + 1 : 1;
-    setJobs([...jobs, { id: newId, ...newJob }]);
+    setJobs([...jobs, { id: newId, category: selectedCategory, ...newJob }]);
     setNewJob({ title: "", description: "", location: "" });
+    setSelectedCategory("");
   };
 
+  const titlesForSelectedCategory = jobCategories.find(cat => cat.category === selectedCategory)?.titles || [];
+
   return (
-    <div className="min-h-screen bg-white p-6">
-      <h1 className="text-3xl font-bold text-blue-700 mb-6">Employer Dashboard</h1>
+    <div className="min-h-screen bg-gray-50 text-gray-900">
+      {/* Header */}
+      <section className="px-6 py-12 bg-gradient-to-br from-blue-50 to-blue-100 shadow-inner">
+        <div className="max-w-4xl mx-auto text-center">
+          <h1 className="text-4xl font-bold text-blue-700 mb-3">Employer Dashboard</h1>
+          <p className="text-gray-600 text-lg">Post new jobs and manage your listings.</p>
+        </div>
+      </section>
 
       {/* Add New Job Form */}
-      <div className="bg-blue-50 p-6 rounded-2xl shadow mb-10">
-        <h2 className="text-xl font-semibold text-blue-600 mb-4">List a New Job</h2>
-        <form onSubmit={handleAdd} className="space-y-4">
-          <input
-            type="text"
-            placeholder="Job Title"
-            value={newJob.title}
-            onChange={(e) => setNewJob({ ...newJob, title: e.target.value })}
-            className="w-full border border-gray-300 p-2 rounded"
-          />
-          <input
-            type="text"
-            placeholder="Location"
-            value={newJob.location}
-            onChange={(e) => setNewJob({ ...newJob, location: e.target.value })}
-            className="w-full border border-gray-300 p-2 rounded"
-          />
-          <textarea
-            placeholder="Job Description"
-            value={newJob.description}
-            onChange={(e) => setNewJob({ ...newJob, description: e.target.value })}
-            className="w-full border border-gray-300 p-2 rounded"
-          />
-          <button
-            type="submit"
-            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
-          >
-            Add Job
-          </button>
-        </form>
-      </div>
+      <section className="px-6 py-10 max-w-4xl mx-auto">
+        <div className="bg-white p-6 rounded-2xl shadow-md">
+          <h2 className="text-2xl font-semibold text-blue-700 mb-4 flex items-center gap-2">
+            <PlusCircle size={22} /> List a New Job
+          </h2>
+          <form onSubmit={handleAdd} className="space-y-4">
+            <select
+              value={selectedCategory}
+              onChange={(e) => {
+                setSelectedCategory(e.target.value);
+                setNewJob((prev) => ({ ...prev, title: "" }));
+              }}
+              className="w-full border border-gray-300 p-3 rounded-lg focus:outline-blue-400 bg-white"
+            >
+              <option value="">Select Category</option>
+              {jobCategories.map((cat, idx) => (
+                <option key={idx} value={cat.category}>
+                  {cat.category}
+                </option>
+              ))}
+            </select>
 
-      {/* Open Job Listings */}
-      <div>
-        <h2 className="text-2xl font-semibold text-blue-700 mb-4">Open Job Roles</h2>
-        <div className="grid gap-4">
+            <select
+              value={newJob.title}
+              onChange={(e) => setNewJob({ ...newJob, title: e.target.value })}
+              disabled={!selectedCategory}
+              className="w-full border border-gray-300 p-3 rounded-lg focus:outline-blue-400 bg-white"
+            >
+              <option value="">Select Job Title</option>
+              {titlesForSelectedCategory.map((title, idx) => (
+                <option key={idx} value={title}>
+                  {title}
+                </option>
+              ))}
+            </select>
+
+            <input
+              type="text"
+              placeholder="Location"
+              value={newJob.location}
+              onChange={(e) => setNewJob({ ...newJob, location: e.target.value })}
+              className="w-full border border-gray-300 p-3 rounded-lg focus:outline-blue-400"
+            />
+
+            <textarea
+              placeholder="Job Description"
+              value={newJob.description}
+              onChange={(e) => setNewJob({ ...newJob, description: e.target.value })}
+              className="w-full border border-gray-300 p-3 rounded-lg focus:outline-blue-400"
+              rows={4}
+            />
+
+            <button
+              type="submit"
+              className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition flex items-center gap-2"
+            >
+              <PlusCircle size={16} />
+              Add Job
+            </button>
+          </form>
+        </div>
+      </section>
+
+      {/* Job Listings */}
+      <section className="px-6 py-10 max-w-4xl mx-auto">
+        <h2 className="text-2xl font-semibold text-blue-700 mb-6 flex items-center gap-2">
+          <Briefcase size={22} />
+          Open Job Roles
+        </h2>
+        <div className="grid gap-5">
           {jobs.length === 0 ? (
-            <p className="text-gray-500">No open roles currently.</p>
+            <p className="text-gray-500">You have no active job listings.</p>
           ) : (
             jobs.map((job) => (
               <div
                 key={job.id}
-                className="bg-blue-100 p-4 rounded-xl shadow hover:shadow-md transition"
+                className="bg-blue-50 p-5 rounded-xl shadow hover:shadow-md transition"
               >
-                <div className="flex justify-between items-center mb-2">
+                <div className="flex justify-between items-center mb-3">
                   <h3 className="text-xl font-bold text-blue-800">{job.title}</h3>
                   <button
                     onClick={() => handleDelete(job.id)}
-                    className="text-red-500 hover:text-red-700 font-semibold"
+                    className="text-red-500 hover:text-red-700 flex items-center gap-1"
                   >
+                    <Trash2 size={18} />
                     Delete
                   </button>
                 </div>
                 <p className="text-gray-700">{job.description}</p>
-                <p className="text-sm text-gray-500 mt-1">📍 {job.location}</p>
+                <p className="text-sm text-gray-500 mt-2">
+                  📂 {job.category} | 📍 {job.location}
+                </p>
               </div>
             ))
           )}
         </div>
-      </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="text-center py-6 text-gray-500 mt-10 border-t bg-white">
+        © {new Date().getFullYear()} JobBoard. All rights reserved.
+      </footer>
     </div>
   );
 }

@@ -1,4 +1,6 @@
+import Navbar from "./Components/Navbar"
 import Home from "./Pages/Home"
+import JobSearchPage from "./Pages/JobSearch"
 import Maintenance from "./Pages/Maintenance"
 import SignIn from "./Pages/Signin"
 import Signup from "./Pages/Signup"
@@ -10,6 +12,7 @@ function App() {
   return (
     <BrowserRouter>
     <div>
+      <Navbar></Navbar>
       <Routes>
         <Route path="/signup" element={<Signup></Signup>}></Route>
         <Route path="/signin" element={<SignIn></SignIn>}></Route>
@@ -18,6 +21,7 @@ function App() {
         <Route path="/employeeDB" element={<EmployeeDashBoard></EmployeeDashBoard>}></Route>
         <Route path="/admin" element={<Admin></Admin>}></Route>
         <Route path="/maintenance" element={<Maintenance></Maintenance>}></Route>
+        <Route path="/jobSearch" element={<JobSearchPage/>}></Route>
       </Routes>
     </div>
     </BrowserRouter>
