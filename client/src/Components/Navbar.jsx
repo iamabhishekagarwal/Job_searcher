@@ -2,12 +2,20 @@ import { useRecoilValue, useSetRecoilState } from "recoil";
 import { userState } from "../../atoms";
 import { axiosInstance } from "../axios";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 function Navbar() {
   const user = useRecoilValue(userState);
   const setUser = useSetRecoilState(userState)
   const [message, setMessage] = useState({});
+  const navigate = useNavigate();
 
+
+  const handleNav = async(type)=>{
+    navigate('/'+type)
+  }
+
+  //LOGOUT
   const handleLogout = async () => {
     try {
       const res = await axiosInstance.get("/api/user/logout");
@@ -38,8 +46,8 @@ function Navbar() {
     <>
       {/* Navbar */}
       <nav className="flex justify-between items-center px-6 py-4 bg-white shadow-md sticky top-0 z-50">
-        <h1 className="text-2xl font-bold text-blue-700">JobBoard</h1>
-        {user.id === null ? <></> : <button className="text-blue-600 italic font-medium hover:underline hover:text-blue-500">{user.role === "Company"?"Apply":"Create"}</button>}
+        <button onClick={()=>handleNav("")} className="text-2xl font-bold text-blue-700">JobBoard</button>
+        {user.id === null ? <></> : <button className="text-blue-600 italic font-medium hover:underline hover:text-blue-500">{user.role === "Company"?"Create":"Apply"}</button>}
         
         <div className="space-x-4">
           {user.fname !== "" ? (
@@ -54,8 +62,8 @@ function Navbar() {
             </div>
           ) : (
             <div className="flex flex-row items-center gap-4">
-              <button className="text-blue-600 font-medium">Login</button>
-              <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+              <button onClick={()=>handleNav("signin")} className="text-blue-600 font-medium">Login</button>
+              <button onClick={()=>handleNav("signup")} className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
                 Sign Up
               </button>
             </div>

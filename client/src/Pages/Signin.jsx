@@ -1,9 +1,12 @@
 import { useState } from 'react';
 import { axiosInstance } from '../axios';
 import { useNavigate } from 'react-router-dom';
+import { useSetRecoilState } from 'recoil';
+import { userState } from '../../atoms';
 
 function SignIn() {
   const navigate = useNavigate();
+  const setUser = useSetRecoilState(userState)
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
@@ -26,8 +29,17 @@ function SignIn() {
         email: formData.email,
         password: formData.password
       });
-
-      if (res.status === 200) {
+      
+      if (res.data.success) {
+        const resData = res.data.user
+        setUser({
+          id:resData.id,
+          fname:resData.firstName,
+          lname:resData.lastName,
+          email:resData.email,
+          isAdmin:resData.isAdmin,
+          role:resData.role
+        })
         navigate("/");
       } else {
         console.error("Unexpected response status:", res.status);

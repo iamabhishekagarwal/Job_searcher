@@ -35,7 +35,7 @@ function Signup() {
         lname: role === "Company" ? " ":formData.lastName,
         email: formData.email,
         password: formData.password,
-        role: formData.role, // include role in request
+        role: formData.role, 
       });
 
       if (res.data.success) {
