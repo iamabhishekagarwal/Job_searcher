@@ -1,0 +1,187 @@
+[
+    {
+        "category": "Technology & Engineering",
+        "titles": [
+            "Frontend Developer",
+            "Backend Developer",
+            "Full Stack Developer",
+            "DevOps Engineer",
+            "Data Scientist",
+            "Data Analyst",
+            "Machine Learning Engineer",
+            "AI Researcher",
+            "Mobile App Developer",
+            "iOS Developer",
+            "Android Developer",
+            "QA Engineer",
+            "Test Automation Engineer",
+            "Cloud Engineer",
+            "Site Reliability Engineer",
+            "Cybersecurity Analyst",
+            "Security Engineer",
+            "Game Developer",
+            "Embedded Systems Engineer",
+            "Blockchain Developer",
+            "UI/UX Designer",
+            "Product Designer",
+            "Web Developer",
+            "Software Architect",
+            "Systems Engineer",
+            "Technical Support Engineer"
+        ]
+    },
+    {
+        "category": "Product & Design",
+        "titles": [
+            "Product Manager",
+            "Associate Product Manager",
+            "UX Researcher",
+            "Interaction Designer",
+            "Visual Designer",
+            "Creative Director",
+            "Design Lead",
+            "Information Architect",
+            "Content Designer"
+        ]
+    },
+    {
+        "category": "Data & Analytics",
+        "titles": [
+            "Business Analyst",
+            "Data Engineer",
+            "Data Visualization Specialist",
+            "BI Developer",
+            "Market Research Analyst",
+            "Data Quality Analyst",
+            "NLP Engineer",
+            "Data Operations Manager"
+        ]
+    },
+    {
+        "category": "Marketing & Sales",
+        "titles": [
+            "Digital Marketing Manager",
+            "SEO Specialist",
+            "Content Strategist",
+            "Social Media Manager",
+            "Growth Hacker",
+            "Performance Marketer",
+            "PPC Specialist",
+            "Email Marketing Specialist",
+            "Marketing Analyst",
+            "Brand Manager",
+            "Affiliate Manager",
+            "Inside Sales Representative",
+            "Account Executive",
+            "Sales Development Representative",
+            "Customer Success Manager",
+            "Territory Sales Manager",
+            "Business Development Executive"
+        ]
+    },
+    {
+        "category": "Finance & Operations",
+        "titles": [
+            "Financial Analyst",
+            "Investment Analyst",
+            "Accountant",
+            "Chartered Accountant",
+            "Controller",
+            "CFO",
+            "Finance Associate",
+            "Operations Manager",
+            "Procurement Specialist",
+            "Inventory Manager",
+            "Risk Analyst",
+            "Compliance Officer",
+            "Tax Consultant"
+        ]
+    },
+    {
+        "category": "Education & Training",
+        "titles": [
+            "Instructional Designer",
+            "Curriculum Developer",
+            "Subject Matter Expert",
+            "Academic Advisor",
+            "Online Tutor",
+            "Corporate Trainer",
+            "Teaching Assistant",
+            "eLearning Developer"
+        ]
+    },
+    {
+        "category": "Healthcare",
+        "titles": [
+            "Registered Nurse",
+            "Medical Coder",
+            "Clinical Research Associate",
+            "Physiotherapist",
+            "Radiologist",
+            "Dentist",
+            "Healthcare Administrator",
+            "Pharmacist",
+            "Lab Technician",
+            "Public Health Analyst"
+        ]
+    },
+    {
+        "category": "Legal & HR",
+        "titles": [
+            "HR Manager",
+            "Talent Acquisition Specialist",
+            "Recruitment Consultant",
+            "HR Business Partner",
+            "Compensation & Benefits Analyst",
+            "Labor Relations Specialist",
+            "Employment Lawyer",
+            "Legal Associate",
+            "Contract Manager"
+        ]
+    },
+    {
+        "category": "Content, Writing & Media",
+        "titles": [
+            "Copywriter",
+            "Content Writer",
+            "Technical Writer",
+            "Editor",
+            "Journalist",
+            "Scriptwriter",
+            "Video Editor",
+            "Motion Graphics Designer",
+            "Voice-over Artist",
+            "Translator",
+            "Content Strategist",
+            "Proofreader"
+        ]
+    },
+    {
+        "category": "Creative & Art",
+        "titles": [
+            "Illustrator",
+            "Graphic Designer",
+            "Animator",
+            "Art Director",
+            "Fashion Designer",
+            "Interior Designer",
+            "3D Artist",
+            "Game Designer"
+        ]
+    },
+    {
+        "category": "Miscellaneous / Blue Collar / Field",
+        "titles": [
+            "Electrician",
+            "Plumber",
+            "Civil Engineer",
+            "Site Supervisor",
+            "Architect",
+            "Mechanical Engineer",
+            "Field Sales Agent",
+            "Delivery Associate",
+            "Warehouse Manager",
+            "Technician"
+        ]
+    }
+]
