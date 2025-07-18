@@ -62,18 +62,6 @@ const JobCard = ({ title, company, location, tags }) => (
 const HomePage = () => {
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900">
-      
-      {/* Navbar */}
-      <nav className="flex justify-between items-center px-6 py-4 bg-white shadow-md sticky top-0 z-50">
-        <h1 className="text-2xl font-bold text-blue-700">JobBoard</h1>
-        <div className="space-x-4">
-          <button className="text-blue-600 font-medium">Login</button>
-          <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
-            Sign Up
-          </button>
-        </div>
-      </nav>
-
       {/* Hero Section */}
       <section className="px-6 py-12 bg-gradient-to-br from-blue-50 to-purple-100">
         <div className="max-w-3xl mx-auto text-center">
