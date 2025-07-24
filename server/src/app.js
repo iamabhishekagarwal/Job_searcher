@@ -7,10 +7,11 @@ const app = express();
 dotenv.config()
 app.use(cookieParser())
 app.use(express.json());
+console.log(process.env.Origin)
 app.use(cors(
     {
         credentials:true,
-        origin:"http://localhost:5173"
+        origin:process.env.Origin
     }
 ));
 
