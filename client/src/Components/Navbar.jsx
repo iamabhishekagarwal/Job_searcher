@@ -35,12 +35,12 @@ function Navbar() {
       } catch (e) {
         console.log(e);
         setMessage({ color: "bg-yellow-400", msg: "Please Login" });
-        setTimeout(() => {
-          setMessage({});
-        }, 5000);
       }
     };
     fetchUser();
+    setTimeout(() => {
+      setMessage({});
+    }, 5000);
     const interval = setInterval(fetchUser, 3600000);
     return () => clearInterval(interval);
   }, [setUser]);
