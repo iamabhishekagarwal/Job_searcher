@@ -1,7 +1,7 @@
 import { useRecoilValue, useSetRecoilState } from "recoil";
 import { userState } from "../../atoms";
 import { axiosInstance } from "../axios";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 function Navbar() {
@@ -10,6 +10,38 @@ function Navbar() {
   const [message, setMessage] = useState({});
   const navigate = useNavigate();
 
+
+    useEffect(()=>{
+        const fetchUser = async()=>{
+        try{
+            const res = await axiosInstance.get("/api/user/me")
+            console.log(res)
+            if(res.data.success)
+            {
+                const resData = res.data.user
+                setUser({
+                    id:resData.id,
+                    fname:resData.firstName,
+                    lname:resData.lastName,
+                    email:resData.email,
+                    isAdmin:resData.isAdmin,
+                    role:resData.role
+                })
+            }else{
+                setMessage({"color":"bg-red-400" , "msg":"Session Invalid, Logging Out!"})
+                handleLogout();
+            }
+        }
+        catch(e)
+        {
+            console.log(e);
+            setMessage({"color":"bg-red-400" , "msg":"Something went wrong!"})
+        }
+    }
+    fetchUser()
+    const interval = setInterval(fetchUser,3600000)
+    return()=>clearInterval(interval)
+},[setUser])
 
   const handleNav = async(type)=>{
     navigate('/'+type)
@@ -47,7 +79,8 @@ function Navbar() {
       {/* Navbar */}
       <nav className="flex justify-between items-center px-6 py-4 bg-white shadow-md sticky top-0 z-50">
         <button onClick={()=>handleNav("")} className="text-2xl font-bold text-blue-700">JobBoard</button>
-        {user.id === null ? <></> : <button className="text-blue-600 italic font-medium hover:underline hover:text-blue-500">{user.role === "Company"?"Create":"Apply"}</button>}
+        {user.id === null ? <></> : 
+        <button onClick={()=>{user.role === "Company"?handleNav(""):handleNav("jobSearch")}} className="text-blue-600 italic font-medium hover:underline hover:text-blue-500">{user.role === "Company"?"Create":"Apply"}</button>}
         
         <div className="space-x-4">
           {user.fname !== "" ? (

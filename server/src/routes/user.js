@@ -122,11 +122,11 @@ router.get("/me" , authenticate , async(req,res)=>{
                 role:true
             }
         })
-        res.json({"user":user});
+        res.json({"success":true,"user":user});
     }
     catch(e)
     {
-        res.send("Error in authenticating");
+        res.send({"success":false , "msg":"Error in authenticating"});
     }
 })
 
