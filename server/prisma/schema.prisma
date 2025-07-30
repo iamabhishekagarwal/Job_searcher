@@ -27,12 +27,17 @@ model Job {
   jobType     String
   description String
   salaryRange String?
-  webLink     String?
-  postedAt    DateTime  @default(now())
+  postedAt    String?
   deadline    DateTime?
-  isRemote    Boolean   @default(false)
   isActive    Boolean   @default(true)
   employerId  Int
+  companyLogo String
+  companyUrl  String?
+  experience  String
+  jobUrl      String?   @unique
+  rating      Float?
+  via         String?
+  tags        String[]
   employer    User      @relation(fields: [employerId], references: [id])
 }
 

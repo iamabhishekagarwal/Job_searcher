@@ -35,8 +35,19 @@ function Navbar() {
         catch(e)
         {
             console.log(e);
+            setUser({
+            id:null,
+            fname:"",
+            lname:"",
+            email:"",
+            isAdmin:false,
+            role:"Employee"
+        })
             setMessage({"color":"bg-red-400" , "msg":"Something went wrong!"})
         }
+        setTimeout(() => {
+          setMessage({});
+        }, 5000);
     }
     fetchUser()
     const interval = setInterval(fetchUser,3600000)
