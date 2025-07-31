@@ -80,7 +80,7 @@ const HomePage = () => {
         console.log(jobs.data);
         setSuggestions(jobs.data)
       } catch {
-        console.log("SOmething went wrong");
+        console.log("Something went wrong");
       }
     };
     const debounce = setTimeout(handleSearch, 300);

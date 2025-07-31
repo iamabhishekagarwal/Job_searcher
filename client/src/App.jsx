@@ -10,6 +10,7 @@ import EmployeeDashBoard from "./Pages/EmployeeDashBoard";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { axiosInstance } from "./axios";
+import AllJobsPage from "./Pages/AllJobsPage";
 
 function App() {
   const [isAdmin, setIsAdmin] = useState(false);
@@ -48,6 +49,7 @@ function App() {
           />
           <Route path="/maintenance" element={<Maintenance />} />
           <Route path="/jobSearch" element={<JobSearchPage />} />
+          <Route path="/jobs" element={<AllJobsPage />} />
         </Routes>
       </div>
     </BrowserRouter>

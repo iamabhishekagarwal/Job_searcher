@@ -17,12 +17,10 @@ router.post("/signup", async (req, res) => {
     role: role,
   });
   if (!inputValidation.success) {
-    return res
-      .status(400)
-      .json({
-        success: false,
-        msg: "Please enter valid email or password(min:8)",
-      });
+    return res.status(400).json({
+      success: false,
+      msg: "Please enter valid email or password(min:8)",
+    });
   }
   try {
     const userExists = await verifyUser(email, password);
@@ -142,13 +140,55 @@ router.get("/suggestions", async (req, res) => {
       },
       select: { title: true },
       distinct: ["title"],
-      take:5
+      take: 5,
     });
-    res.status(200).json(jobs.map((job)=> job.title))
+    res.status(200).json(jobs.map((job) => job.title));
   } catch (e) {
     console.log(e);
-    res.json([])
+    res.json([]);
   }
 });
 
+router.get("/filters", async (req, res) => {
+  try {
+    const jobs = await prisma.job.findMany({
+      select: {
+        location: true,
+        tags: true,
+        companyName: true,
+        experience: true,
+        via: true,
+      },
+    });
+    const location = [...new Set(jobs.map((job)=>job.location.toLowerCase()))]
+    let allLocations = [... new Set(location.flatMap((locStr) =>
+      locStr.split(/,|\/|\s\/\s/).map((part) =>
+        part
+          .trim()
+          .replace("hybrid -", "")
+          .replace(/\(.*?\)/g, "") // remove (....)
+          .replace(/\+.*$/, "") // remove +... from names
+          .replace(/\s*\/\s*/g, "/") // normalize spacing around slashes
+          .trim()
+      )
+    ))];
+    const companyName = [...new Set(jobs.map((job) => job.companyName))];
+    const experience = [...new Set(jobs.map((job) => job.experience))];
+    const via = [...new Set(jobs.map((job) => job.via))];
+    const tags = [...new Set(jobs.map((job) => job.tags).flat())];
+    res
+      .status(200)
+      .json({
+        success: true,
+        allLocations,
+        companyName,
+        experience,
+        via,
+        tags,
+      });
+  } catch (e) {
+    console.log(e);
+    res.status(500).json({ success: false, msg: "Something went wrong" });
+  }
+});
 export default router;
