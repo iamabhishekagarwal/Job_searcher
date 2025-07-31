@@ -1,6 +1,8 @@
 import React from "react";
 import { Search, Star } from "lucide-react";
-
+import axios from "../axiosInstance.js";
+import { useState } from "react";
+import { useEffect } from "react";
 const jobs = [
   {
     id: 1,
@@ -26,7 +28,12 @@ const jobs = [
 ];
 
 const categories = [
-  "Design", "Development", "Marketing", "Data Science", "Sales", "Support"
+  "Design",
+  "Development",
+  "Marketing",
+  "Data Science",
+  "Sales",
+  "Support",
 ];
 
 const testimonials = [
@@ -45,7 +52,9 @@ const testimonials = [
 const JobCard = ({ title, company, location, tags }) => (
   <div className="border rounded-2xl p-4 shadow-md hover:shadow-lg transition-all bg-white">
     <h3 className="text-xl font-semibold">{title}</h3>
-    <p className="text-sm text-gray-600">{company} • {location}</p>
+    <p className="text-sm text-gray-600">
+      {company} • {location}
+    </p>
     <div className="flex flex-wrap gap-2 mt-2">
       {tags.map((tag, idx) => (
         <span key={idx} className="bg-gray-100 text-sm px-3 py-1 rounded-full">
@@ -60,6 +69,23 @@ const JobCard = ({ title, company, location, tags }) => (
 );
 
 const HomePage = () => {
+  const [input, setInput] = useState("");
+  const [suggestions, setSuggestions] = useState([]);
+  useEffect(() => {
+    if (input.trim().length === 0) setSuggestions([]);
+    else{
+      const handleSearch = async () => {
+      try {
+        const jobs = await axios(`/api/user/suggestions?query=${input}`);
+        console.log(jobs.data);
+        setSuggestions(jobs.data)
+      } catch {
+        console.log("SOmething went wrong");
+      }
+    };
+    const debounce = setTimeout(handleSearch, 300);
+    return () => clearTimeout(debounce);}
+  }, [input]);
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900">
       {/* Hero Section */}
@@ -69,9 +95,12 @@ const HomePage = () => {
           <p className="text-gray-600 mb-6">
             Explore thousands of job opportunities tailored just for you.
           </p>
-          <div className="flex items-center justify-center gap-2">
+          <div className="relative w-full max-w-md mx-auto">
+            <div className="flex flex-row">
             <input
               type="text"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
               placeholder="Search by job title or keyword..."
               className="w-full max-w-md p-3 border border-gray-300 rounded-lg focus:outline-none"
             />
@@ -79,6 +108,19 @@ const HomePage = () => {
               <Search size={18} />
               Search
             </button>
+            </div>
+            {suggestions.length > 0 && (
+              <ul className="absolute left-0 right-0 bg-white border rounded shadow z-10 mt-1 max-h-60 overflow-auto">
+                {suggestions.map((title, idx) => (
+                  <li
+                    key={idx}
+                    className="text-left px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                  >
+                    {title}
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
         </div>
       </section>
@@ -95,7 +137,9 @@ const HomePage = () => {
 
       {/* Categories */}
       <section className="px-6 py-10 bg-white">
-        <h3 className="text-2xl font-bold mb-6 text-center">Explore by Categories</h3>
+        <h3 className="text-2xl font-bold mb-6 text-center">
+          Explore by Categories
+        </h3>
         <div className="flex flex-wrap justify-center gap-4">
           {categories.map((cat, index) => (
             <button
