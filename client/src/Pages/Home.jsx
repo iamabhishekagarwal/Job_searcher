@@ -1,6 +1,6 @@
 import React from "react";
 import { Search, Star } from "lucide-react";
-import axios from "../axiosInstance.js";
+import axiosInstance from "../axiosInstance.js"
 import { useState } from "react";
 import { useEffect } from "react";
 const jobs = [
@@ -76,7 +76,7 @@ const HomePage = () => {
     else{
       const handleSearch = async () => {
       try {
-        const jobs = await axios(`/api/user/suggestions?query=${input}`);
+        const jobs = await axiosInstance(`/api/user/suggestions?query=${input}`);
         console.log(jobs.data);
         setSuggestions(jobs.data)
       } catch {

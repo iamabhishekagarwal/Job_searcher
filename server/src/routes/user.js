@@ -1,12 +1,11 @@
-import { Router } from "express";
+import express from 'express'
 import { userSchema } from "../helper/userSchema.js";
 import insertUser from "../helper/insertUser.js";
 import { verifyUser } from "../helper/verifyUser.js";
 import { generateToken } from "../helper/jwt.js";
 import { authenticate } from "../middlewares/authenticate.js";
 import { prisma } from "../helper/pooler.js";
-const router = Router();
-
+const router = express.Router();
 router.post("/signup", async (req, res) => {
   const { fname, lname, email, password, role } = req.body;
   const inputValidation = userSchema.safeParse({
@@ -191,4 +190,5 @@ router.get("/filters", async (req, res) => {
     res.status(500).json({ success: false, msg: "Something went wrong" });
   }
 });
+
 export default router;
