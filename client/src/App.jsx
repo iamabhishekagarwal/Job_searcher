@@ -9,7 +9,7 @@ import EmployerDashBoard from "./Pages/EmployerDashBoard";
 import EmployeeDashBoard from "./Pages/EmployeeDashBoard";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { axiosInstance } from "./axios";
+import axiosInstance from "./axios";
 import AllJobsPage from "./Pages/AllJobsPage";
 
 function App() {

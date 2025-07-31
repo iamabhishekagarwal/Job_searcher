@@ -45,7 +45,7 @@ router.post("/signup", async (req, res) => {
 });
 
 router.post("/signin", async (req, res) => {
-  const { email, password, role } = req.body;
+  const { email, password } = req.body;
   const inputValidation = userSchema.safeParse({ email, password });
 
   if (!inputValidation.success) {
@@ -130,7 +130,7 @@ router.get("/me", authenticate, async (req, res) => {
   }
 });
 
-router.get("/suggestions", async (req, res) => {
+router.get("/suggestions", authenticate, async (req, res) => {
   const query = req.query.query;
   query.toString();
   try {
@@ -149,46 +149,124 @@ router.get("/suggestions", async (req, res) => {
   }
 });
 
-router.get("/filters", async (req, res) => {
-  try {
-    const jobs = await prisma.job.findMany({
-      select: {
-        location: true,
-        tags: true,
-        companyName: true,
-        experience: true,
-        via: true,
-      },
+router.get("/filters", authenticate, async (req, res) => {
+  const { type, query = "", limit = 20 } = req.query;
+  // Map type to Prisma field
+  const fieldMap = {
+    tags: "tags",
+    locations: "location",
+    companies: "companyName",
+    experience: "experience",
+    via: "via",
+  };
+  const field = fieldMap[type];
+  if (!field) return res.status(400).json({ error: "Invalid filter type" });
+
+  let prismaFilter = {};
+
+  // For array columns (e.g. tags): use has (for case-insensitive search)
+  if (field === "tags") {
+    prismaFilter = query ? { tags: { has: query } } : {};
+    const tags = await prisma.job.findMany({
+      where: prismaFilter,
+      take: +limit,
+      select: { tags: true },
+      distinct: ["tags"],
     });
-    const location = [...new Set(jobs.map((job)=>job.location.toLowerCase()))]
-    let allLocations = [... new Set(location.flatMap((locStr) =>
-      locStr.split(/,|\/|\s\/\s/).map((part) =>
-        part
-          .trim()
-          .replace("hybrid -", "")
-          .replace(/\(.*?\)/g, "") // remove (....)
-          .replace(/\+.*$/, "") // remove +... from names
-          .replace(/\s*\/\s*/g, "/") // normalize spacing around slashes
-          .trim()
-      )
-    ))];
-    const companyName = [...new Set(jobs.map((job) => job.companyName))];
-    const experience = [...new Set(jobs.map((job) => job.experience))];
-    const via = [...new Set(jobs.map((job) => job.via))];
-    const tags = [...new Set(jobs.map((job) => job.tags).flat())];
-    res
-      .status(200)
-      .json({
-        success: true,
-        allLocations,
-        companyName,
-        experience,
-        via,
-        tags,
-      });
-  } catch (e) {
-    console.log(e);
-    res.status(500).json({ success: false, msg: "Something went wrong" });
+    const flatTags = [
+      ...new Set(
+        tags
+          .flatMap((j) => j.tags)
+          .filter((t) => t.toLowerCase().includes(query.toLowerCase()))
+      ),
+    ];
+    return res.json({ items: flatTags.slice(0, +limit) });
+  }
+
+  // For all other fields (locations, companyName, etc.): use case-insensitive contains
+  let where = {};
+  if (query && field !== "tags") {
+    where = {
+      [field]: {
+        contains: query,
+        mode: "insensitive",
+      },
+    };
+  }
+
+  const jobs = await prisma.job.findMany({
+    where,
+    take: +limit * 5, // Overfetch for de-duplication
+    select: { [field]: true },
+  });
+
+  // Flatten and dedupe
+  let items = [...new Set(jobs.map((j) => j[field]))]
+    .filter(Boolean)
+    .filter((item) => item.toLowerCase().includes(query.toLowerCase()));
+
+  // Post-process locations as previously, if needed
+  if (field === "location") {
+    items = [
+      ...new Set(
+        items.flatMap((locStr) =>
+          locStr.split(/,|\/|\s\/\s/).map((part) =>
+            part
+              .trim()
+              .replace("hybrid -", "")
+              .replace(/\(.*?\)/g, "")
+              .replace(/\+.*$/, "")
+              .replace(/\s*\/\s*/g, "/")
+              .trim()
+          )
+        )
+      ),
+    ].filter(Boolean);
+  }
+
+  res.json({ items: items.slice(0, +limit) });
+});
+
+router.post("/getJobs", authenticate, async (req, res) => {
+  try {
+    const {
+      tags = [],
+      locations = [],
+      companies = [],
+      vias = [],
+      page = 1,
+      limit = 10,
+    } = req.body;
+    const filters = [
+      tags.length > 0 ? { tags: { hasSome: tags } } : undefined,
+      locations.length > 0 ? { location: { in: locations } } : undefined,
+      companies.length > 0 ? { companyName: { in: companies } } : undefined,
+      vias.length > 0 ? { via: { in: vias } } : undefined,
+    ].filter(Boolean);
+
+    const whereFilter = filters.length > 0 ? { AND: filters } : {};
+
+    const [jobs, totalCount] = await Promise.all([
+      prisma.job.findMany({
+        where: whereFilter,
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+      prisma.job.count({
+        where: whereFilter,
+      }),
+    ]);
+
+    res.json({
+      jobs,
+      totalCount,
+      totalPages: Math.ceil(totalCount / limit),
+      currentPage: page,
+    });
+  } catch (error) {
+    console.error("Error fetching jobs:", error);
+    res.status(500).json({ error: "Internal Server Error" });
   }
 });
+
 export default router;

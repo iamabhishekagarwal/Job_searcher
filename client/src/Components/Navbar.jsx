@@ -1,6 +1,6 @@
 import { useRecoilValue, useSetRecoilState } from "recoil";
 import { userState } from "../../atoms";
-import { axiosInstance } from "../axios";
+import axiosInstance from "../axios";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -108,7 +108,7 @@ function Navbar() {
         ) : (
           <button
             onClick={() => {
-              user.role === "Company" ? handleNav("") : handleNav("jobSearch");
+              user.role === "Company" ? handleNav("") : handleNav("jobs");
             }}
             className="text-blue-600 italic font-medium hover:underline hover:text-blue-500"
           >

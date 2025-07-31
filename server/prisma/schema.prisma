@@ -8,18 +8,19 @@ datasource db {
 }
 
 model User {
-  id        Int     @id @default(autoincrement())
+  id        Int         @id @default(autoincrement())
   firstName String
-  isAdmin   Boolean @default(false)
+  isAdmin   Boolean     @default(false)
   email     String
   lastName  String
   password  String
-  role      Role    @default(Employee)
+  role      Role        @default(Employee)
   job       Job[]
+  SavedJobs SavedJobs[]
 }
 
 model Job {
-  id          Int       @id @default(autoincrement())
+  id          Int         @id @default(autoincrement())
   title       String
   category    String
   companyName String
@@ -29,16 +30,27 @@ model Job {
   salaryRange String?
   postedAt    String?
   deadline    DateTime?
-  isActive    Boolean   @default(true)
+  isActive    Boolean     @default(true)
   employerId  Int
   companyLogo String
   companyUrl  String?
   experience  String
-  jobUrl      String?   @unique
+  jobUrl      String?     @unique
   rating      Float?
   via         String?
   tags        String[]
-  employer    User      @relation(fields: [employerId], references: [id])
+  employer    User        @relation(fields: [employerId], references: [id])
+  SavedJobs   SavedJobs[]
+}
+
+model SavedJobs {
+  id     Int  @id @default(autoincrement())
+  userId Int
+  jobId  Int
+  Job    Job  @relation(fields: [jobId], references: [id])
+  User   User @relation(fields: [userId], references: [id])
+
+  @@unique([userId, jobId])
 }
 
 enum Role {

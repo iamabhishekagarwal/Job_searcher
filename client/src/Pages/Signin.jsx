@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { axiosInstance } from '../axios';
+import axiosInstance from '../axios';
 import { useNavigate } from 'react-router-dom';
 import { useSetRecoilState } from 'recoil';
 import { userState } from '../../atoms';
