@@ -42,7 +42,7 @@ function Navbar() {
           isAdmin: false,
           role: "Employee",
         });
-        setMessage({ color: "bg-red-400", msg: "Something went wrong!" });
+        setMessage({ color: "bg-yellow-500", msg: "Please Login again!" });
       }
       setTimeout(() => {
         setMessage({});
@@ -51,7 +51,7 @@ function Navbar() {
     fetchUser();
     const interval = setInterval(fetchUser, 3600000);
     return () => clearInterval(interval);
-  }, [setUser]);
+  }, []);
 
   const handleNav = async (type) => {
     navigate("/" + type);

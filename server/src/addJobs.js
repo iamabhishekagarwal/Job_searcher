@@ -21,7 +21,7 @@ async function main() {
 
         const existingJob = await prisma.job.findFirst({
           where: {
-            jobUrl: job.job_url,
+            jobUrl: job.job_url,//empty url leads to PAGE NOT FOUND(create)
           },
         });
 
