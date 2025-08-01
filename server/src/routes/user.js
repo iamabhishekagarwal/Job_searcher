@@ -1,11 +1,12 @@
-import express from 'express'
+import { Router } from "express";
 import { userSchema } from "../helper/userSchema.js";
 import insertUser from "../helper/insertUser.js";
 import { verifyUser } from "../helper/verifyUser.js";
 import { generateToken } from "../helper/jwt.js";
 import { authenticate } from "../middlewares/authenticate.js";
 import { prisma } from "../helper/pooler.js";
-const router = express.Router();
+const router = Router();
+
 router.post("/signup", async (req, res) => {
   const { fname, lname, email, password, role } = req.body;
   const inputValidation = userSchema.safeParse({
@@ -44,7 +45,7 @@ router.post("/signup", async (req, res) => {
 });
 
 router.post("/signin", async (req, res) => {
-  const { email, password, role } = req.body;
+  const { email, password } = req.body;
   const inputValidation = userSchema.safeParse({ email, password });
 
   if (!inputValidation.success) {
@@ -129,7 +130,7 @@ router.get("/me", authenticate, async (req, res) => {
   }
 });
 
-router.get("/suggestions", async (req, res) => {
+router.get("/suggestions", authenticate, async (req, res) => {
   const query = req.query.query;
   query.toString();
   try {
@@ -148,46 +149,147 @@ router.get("/suggestions", async (req, res) => {
   }
 });
 
-router.get("/filters", async (req, res) => {
-  try {
+router.get("/filters", authenticate, async (req, res) => {
+  const { type, query = "", limit = 20 } = req.query;
+  const fieldMap = {
+    tags: "tags",
+    locations: "location",
+    companies: "companyName",
+    experience: "experience",
+    vias: "via",
+  };
+  const field = fieldMap[type];
+  if (!field) return res.status(400).json({ error: "Invalid filter type" });
+
+  let items = [];
+
+  // TAGS: get all tags, flatten, then substring match
+  if (field === "tags") {
     const jobs = await prisma.job.findMany({
-      select: {
-        location: true,
-        tags: true,
-        companyName: true,
-        experience: true,
-        via: true,
-      },
+      select: { tags: true },
+      take: 1000, // Reasonable cap; large enough for diversity, not too big for RAM
     });
-    const location = [...new Set(jobs.map((job)=>job.location.toLowerCase()))]
-    let allLocations = [... new Set(location.flatMap((locStr) =>
-      locStr.split(/,|\/|\s\/\s/).map((part) =>
-        part
-          .trim()
-          .replace("hybrid -", "")
-          .replace(/\(.*?\)/g, "") // remove (....)
-          .replace(/\+.*$/, "") // remove +... from names
-          .replace(/\s*\/\s*/g, "/") // normalize spacing around slashes
-          .trim()
-      )
-    ))];
-    const companyName = [...new Set(jobs.map((job) => job.companyName))];
-    const experience = [...new Set(jobs.map((job) => job.experience))];
-    const via = [...new Set(jobs.map((job) => job.via))];
-    const tags = [...new Set(jobs.map((job) => job.tags).flat())];
-    res
-      .status(200)
-      .json({
-        success: true,
-        allLocations,
-        companyName,
-        experience,
-        via,
-        tags,
-      });
-  } catch (e) {
-    console.log(e);
-    res.status(500).json({ success: false, msg: "Something went wrong" });
+    const allTags = jobs.flatMap((job) => job.tags);
+    items = [...new Set(allTags)]
+      .filter(Boolean)
+      .filter((t) => t.toLowerCase().includes(query.toLowerCase()))
+      .slice(0, +limit);
+    return res.json({ items });
+  }
+
+  // OTHERS: fetch field values, deduplicate, substring match
+  let where = {};
+  if (query && field !== "tags") {
+    // Optionally, use a very broad filter to not fetch all jobs for performance
+    where = {
+      [field]: {
+        contains: query,
+        mode: "insensitive",
+      },
+    };
+  }
+
+  const jobs = await prisma.job.findMany({
+    where,
+    take: 1000, // Cap for safety; adjust as needed
+    select: { [field]: true },
+  });
+
+  items = [...new Set(jobs.map((job) => job[field]))]
+    .filter(Boolean)
+    .filter(
+      (val) =>
+        typeof val === "string" &&
+        val.toLowerCase().includes(query.toLowerCase())
+    );
+
+  // Special location postprocessing
+  if (field === "location") {
+    items = [
+      ...new Set(
+        items.flatMap((locStr) =>
+          locStr.split(/,|\/|\s\/\s/).map((part) =>
+            part
+              .trim()
+              .replace("hybrid -", "")
+              .replace(/\(.*?\)/g, "")
+              .replace(/\+.*$/, "")
+              .replace(/\s*\/\s*/g, "/")
+              .trim()
+          )
+        )
+      ),
+    ]
+      .filter(Boolean)
+      .filter((loc) => loc.toLowerCase().includes(query.toLowerCase()));
+  }
+
+  res.json({ items: items.slice(0, +limit) });
+});
+
+//filtered Jobs takes selected filters from FE and returns all the jobs that have atleat one tag in common with the all the selected tags
+
+router.get("/getJobs", authenticate, async (req, res) => {
+  try {
+    const {
+      tags = [],
+      locations = [],
+      companies = [],
+      vias = [],
+      page = 1,
+      limit = 10,
+    } = req.query;
+
+    // Helper to parse arrays if query params are comma-separated strings
+    const parseArrayParam = (param) => {
+      if (!param) return [];
+      if (Array.isArray(param)) return param;
+      return param
+        .split(",")
+        .map((str) => str.trim())
+        .filter(Boolean);
+    };
+
+    const parsedTags = parseArrayParam(tags);
+    const parsedLocations = parseArrayParam(locations);
+    const parsedCompanies = parseArrayParam(companies);
+    const parsedVias = parseArrayParam(vias);
+
+    const filters = [
+      parsedTags.length > 0 ? { tags: { hasSome: parsedTags } } : undefined,
+      parsedLocations.length > 0
+        ? { location: { in: parsedLocations } }
+        : undefined,
+      parsedCompanies.length > 0
+        ? { companyName: { in: parsedCompanies } }
+        : undefined,
+      parsedVias.length > 0 ? { via: { in: parsedVias } } : undefined,
+    ].filter(Boolean);
+
+    const whereFilter = filters.length > 0 ? { AND: filters } : {};
+
+    const skip = (Number(page) - 1) * Number(limit);
+
+    const [jobs, totalCount] = await Promise.all([
+      prisma.job.findMany({
+        where: whereFilter,
+        skip,
+        take: Number(limit),
+      }),
+      prisma.job.count({
+        where: whereFilter,
+      }),
+    ]);
+
+    res.json({
+      jobs,
+      totalCount,
+      totalPages: Math.ceil(totalCount / limit),
+      currentPage: Number(page),
+    });
+  } catch (error) {
+    console.error("Error fetching jobs:", error);
+    res.status(500).json({ error: "Internal Server Error" });
   }
 });
 

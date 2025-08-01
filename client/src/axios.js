@@ -1,6 +1,7 @@
-import axios from "axios"
+import axios from "axios";
 
-export const axiosInstance = axios.create({
+const axiosInstance = axios.create({
     baseURL:`${import.meta.env.VITE_BACKEND_URL}`,
-    withCredentials:true
-})
+    withCredentials: true, 
+});
+export default axiosInstance;

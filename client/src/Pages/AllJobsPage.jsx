@@ -1,100 +1,256 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
+import axiosInstance from "../axios.js";
+import FilterInput from "../Components/FilterInput";
+import useDebounce from "../hooks/useDebounce.js";
 
-const sampleJobs = [
-  { id: 1, title: "Frontend Developer", company: "TCS", location: "Bangalore", tags: ["Full-time", "Remote", "React"] },
-  { id: 2, title: "Backend Developer", company: "Infosys", location: "Pune", tags: ["Full-time", "Node.js", "MongoDB"] },
-  { id: 3, title: "UI/UX Designer", company: "Adobe", location: "Noida", tags: ["Internship", "Figma"] },
-  { id: 4, title: "DevOps Engineer", company: "Amazon", location: "Hyderabad", tags: ["AWS", "Docker"] },
-  { id: 5, title: "Data Scientist", company: "Google", location: "Bangalore", tags: ["Remote", "Machine Learning"] },
-  { id: 6, title: "Marketing Specialist", company: "Flipkart", location: "Mumbai", tags: ["SEO", "Analytics"] },
+const filterTypes = [
+  { key: "tags", label: "Tags" },
+  { key: "locations", label: "Locations" },
+  { key: "companies", label: "Companies" },
+  { key: "vias", label: "Via" },
 ];
 
-const JobCard = ({ title, company, location, tags }) => (
-  <div className="border rounded-2xl p-4 shadow hover:shadow-lg transition-all bg-white">
-    <h3 className="text-xl font-semibold">{title}</h3>
-    <p className="text-sm text-gray-600">{company} • {location}</p>
-    <div className="flex flex-wrap gap-2 mt-2">
-      {tags.map((tag, idx) => (
-        <span key={idx} className="bg-gray-100 text-sm px-3 py-1 rounded-full">
-          {tag}
-        </span>
-      ))}
-    </div>
-    <button className="mt-4 bg-blue-600 text-white px-4 py-2 rounded-xl hover:bg-blue-700">
-      Apply Now
-    </button>
-  </div>
-);
-
 const AllJobsPage = () => {
-  const [selectedLocation, setSelectedLocation] = useState("All");
-  const [selectedTag, setSelectedTag] = useState("All");
-  const [sortBy, setSortBy] = useState("title");
-  const [visibleCount, setVisibleCount] = useState(1);
+  // Query and selected state per filter
+  const [queries, setQueries] = useState({
+    tags: "",
+    locations: "",
+    companies: "",
+    vias: "",
+  });
+  const [selected, setSelected] = useState({
+    tags: [],
+    locations: [],
+    companies: [],
+    vias: [],
+  });
 
-  const uniqueLocations = ["All", ...new Set(sampleJobs.map(job => job.location))];
-  const uniqueTags = ["All", ...new Set(sampleJobs.flatMap(job => job.tags))];
+  // Suggestions per filter
+  const [suggestions, setSuggestions] = useState({
+    tags: [],
+    locations: [],
+    companies: [],
+    vias: [],
+  });
 
-  const filteredJobs = sampleJobs
-    .filter(job => selectedLocation === "All" || job.location === selectedLocation)
-    .filter(job => selectedTag === "All" || job.tags.includes(selectedTag))
-    .sort((a, b) => a[sortBy].localeCompare(b[sortBy]))
-    .slice(0, visibleCount);
+  // Track which filter input is active (open dropdown)
+  const [activeFilter, setActiveFilter] = useState("");
+
+  // Debounced query string per filter
+  const debouncedQueries = {
+    tags: useDebounce(queries.tags, 200),
+    locations: useDebounce(queries.locations, 200),
+    companies: useDebounce(queries.companies, 200),
+    vias: useDebounce(queries.vias, 200),
+  };
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(15); // number of jobs per page
+  const [totalJobs, setTotalJobs] = useState(0);
+
+  // Fetch suggestions as user types
+  const query = debouncedQueries[activeFilter];
+
+  useEffect(() => {
+    if (!activeFilter || !query) {
+      setSuggestions((prev) => ({ ...prev, [activeFilter]: [] }));
+      return;
+    }
+
+    axiosInstance
+      .get(`/api/user/filters`, {
+        params: {
+          type: activeFilter,
+          query,
+          limit: 10,
+        },
+      })
+      .then((res) => {
+        setSuggestions((prev) => ({
+          ...prev,
+          [activeFilter]: res.data.items || [],
+        }));
+      })
+      .catch(() => {
+        setSuggestions((prev) => ({ ...prev, [activeFilter]: [] }));
+      });
+  }, [query, activeFilter]);
+  // Remove item helper
+  const removeItem = (filterKey, value) => {
+    setSelected((prev) => ({
+      ...prev,
+      [filterKey]: prev[filterKey].filter((item) => item !== value),
+    }));
+  };
+
+  // Add item helper
+  const addItem = (filterKey, value) => {
+    setSelected((prev) => ({
+      ...prev,
+      [filterKey]: Array.from(new Set([...prev[filterKey], value])),
+    }));
+    setQueries((prev) => ({ ...prev, [filterKey]: "" }));
+  };
+  useEffect(() => {
+    setPage(1);
+  }, [selected]);
+
+  // Job fetch
+  const [jobs, setJobs] = useState([]);
+  const fetchJobs = useCallback(() => {
+    axiosInstance
+      .get("/api/user/getJobs", {params:{
+        tags: selected.tags || [],
+        locations: selected.locations || [],
+        companies: selected.companies || [],
+        vias: selected.vias || [],
+        page,
+        limit,
+      }})
+      .then((res) => {
+        setJobs(res.data.jobs);
+        setTotalJobs(res.data.totalCount || 0); // Set total jobs count
+      })
+      .catch((e) => console.error(e));
+  }, [
+    selected.tags,
+    selected.locations,
+    selected.companies,
+    selected.vias,
+    page,
+    limit,
+  ]);
+
+  useEffect(() => {
+    fetchJobs();
+  }, []);
+
+  const totalPages = Math.ceil(totalJobs / limit);
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <h2 className="text-3xl font-bold mb-6 text-center">All Job Listings</h2>
+    <div className="flex gap-6 px-4">
+      <div className="w-full max-w-xs space-y-4">
+        {filterTypes.map(({ key, label }) => (
+          <FilterInput
+            key={key}
+            label={label}
+            query={queries[key]}
+            setQuery={(val) => setQueries((prev) => ({ ...prev, [key]: val }))}
+            suggestions={suggestions[key].filter(
+              (item) => !selected[key].includes(item)
+            )}
+            onSelect={(updateFn) => {
+              // updateFn is a function like prev => newSelectedItemsArray from <FilterInput>
+              setSelected((prev) => ({
+                ...prev,
+                [key]: updateFn(prev[key]),
+              }));
+              setQueries((prev) => ({ ...prev, [key]: "" }));
+            }}
+            selectedItems={selected[key]}
+            onRemove={(item) => removeItem(key, item)}
+            isActive={activeFilter === key}
+            setActiveFilter={() => setActiveFilter(key)}
+          />
+        ))}
 
-      <div className="flex flex-col md:flex-row gap-6 max-w-7xl mx-auto">
-        {/* Filters Column */}
-        <div className="w-full md:w-1/4 bg-white p-4 rounded-xl shadow">
-          <h4 className="text-lg font-semibold mb-4">Filters</h4>
-          
-          <div className="mb-4">
-            <label className="block mb-1 font-medium">Location</label>
-            <select value={selectedLocation} onChange={e => setSelectedLocation(e.target.value)} className="w-full p-2 rounded border">
-              {uniqueLocations.map((loc, i) => (
-                <option key={i} value={loc}>{loc}</option>
-              ))}
-            </select>
-          </div>
+        <button
+          onClick={fetchJobs}
+          className="bg-blue-700 hover:bg-blue-500 text-white font-semibold py-2 px-6 rounded-md shadow-sm transition duration-200"
+        >
+          Apply
+        </button>
+      </div>
 
-          <div className="mb-4">
-            <label className="block mb-1 font-medium">Tag</label>
-            <select value={selectedTag} onChange={e => setSelectedTag(e.target.value)} className="w-full p-2 rounded border">
-              {uniqueTags.map((tag, i) => (
-                <option key={i} value={tag}>{tag}</option>
-              ))}
-            </select>
-          </div>
+      <div>
+        {/* Display Jobs */}
+        <h2 className="text-lg font-semibold my-4">Jobs ({jobs.length})</h2>
+        <div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {jobs.map((job) => (
+              <div
+                key={job.id}
+                className="border rounded-lg shadow-md p-4 flex flex-col"
+              >
+                {/* Company logo */}
+                <div className="flex items-center mb-4">
+                  {job.companyLogo ? (
+                    <img
+                      src={job.companyLogo}
+                      alt={`${job.companyName} logo`}
+                      className="w-16 h-16 object-contain rounded"
+                    />
+                  ) : (
+                    <div className="w-16 h-16 bg-gray-200 rounded flex items-center justify-center text-gray-400">
+                      N/A
+                    </div>
+                  )}
+                  <div className="ml-4">
+                    <h3 className="text-xl font-bold">{job.title}</h3>
+                    <p className="text-sm font-medium text-gray-600">
+                      {job.companyName}
+                    </p>
+                    <p className="text-sm text-gray-500">
+                      {job.location} • {job.experience} • {job.jobType}
+                    </p>
+                  </div>
+                </div>
 
-          <div>
-            <label className="block mb-1 font-medium">Sort By</label>
-            <select value={sortBy} onChange={e => setSortBy(e.target.value)} className="w-full p-2 rounded border">
-              <option value="title">Title</option>
-              <option value="company">Company</option>
-            </select>
-          </div>
-        </div>
+                {/* Description snippet */}
+                <p className="text-sm text-gray-700 line-clamp-3 mb-2">
+                  {job.description}
+                </p>
 
-        {/* Job Listings Column */}
-        <div className="w-full md:w-3/4">
-          <div className="grid gap-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2">
-            {filteredJobs.map((job) => (
-              <JobCard key={job.id} {...job} />
+                {/* Tags */}
+                <div className="flex flex-wrap gap-2 mb-4">
+                  {job.tags.map((tag, idx) => (
+                    <span
+                      key={idx}
+                      className="bg-blue-100 text-blue-800 text-xs font-medium px-2 py-1 rounded-full"
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+
+                {/* Footer line: postedAt, via */}
+                <div className="text-xs text-gray-500 mb-4 flex justify-between">
+                  <span>Posted: {job.postedAt}</span>
+                  <span>Via: {job.via}</span>
+                </div>
+
+                {/* Apply button */}
+                <a
+                  href={job.jobUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-auto inline-block bg-green-600 hover:bg-green-700 text-white text-center font-semibold py-2 rounded transition duration-200"
+                >
+                  Apply
+                </a>
+              </div>
             ))}
           </div>
+        </div>
+        <div className="flex items-center justify-center gap-4 mt-6">
+          <button
+            disabled={page <= 1}
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
+            className="px-3 py-1 bg-gray-300 rounded disabled:opacity-50"
+          >
+            Previous
+          </button>
 
-          {visibleCount < sampleJobs.length && (
-            <div className="flex justify-center mt-6">
-              <button
-                className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-                onClick={() => setVisibleCount(prev => prev + 3)}
-              >
-                Load More
-              </button>
-            </div>
-          )}
+          <span>
+            Page {page} of {totalPages}
+          </span>
+
+          <button
+            disabled={page >= totalPages}
+            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+            className="px-3 py-1 bg-gray-300 rounded disabled:opacity-50"
+          >
+            Next
+          </button>
         </div>
       </div>
     </div>
