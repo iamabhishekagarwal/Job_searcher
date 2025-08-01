@@ -3,7 +3,10 @@ import cors from 'cors'
 import dotenv from 'dotenv'
 import router from './routes/user.js';
 import cookieParser from 'cookie-parser';
+import qs from "qs";
+
 const app = express();
+app.set("query parser", str => qs.parse(str));
 dotenv.config()
 app.use(cookieParser())
 app.use(express.json());
