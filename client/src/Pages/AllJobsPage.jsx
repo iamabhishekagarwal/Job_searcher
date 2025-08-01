@@ -44,7 +44,7 @@ const AllJobsPage = () => {
     vias: useDebounce(queries.vias, 200),
   };
   const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(10); // number of jobs per page
+  const [limit, setLimit] = useState(15); // number of jobs per page
   const [totalJobs, setTotalJobs] = useState(0);
 
   // Fetch suggestions as user types
@@ -98,14 +98,14 @@ const AllJobsPage = () => {
   const [jobs, setJobs] = useState([]);
   const fetchJobs = useCallback(() => {
     axiosInstance
-      .post("/api/user/getJobs", {
+      .get("/api/user/getJobs", {params:{
         tags: selected.tags || [],
         locations: selected.locations || [],
         companies: selected.companies || [],
         vias: selected.vias || [],
         page,
         limit,
-      })
+      }})
       .then((res) => {
         setJobs(res.data.jobs);
         setTotalJobs(res.data.totalCount || 0); // Set total jobs count
@@ -119,9 +119,10 @@ const AllJobsPage = () => {
     page,
     limit,
   ]);
+
   useEffect(() => {
     fetchJobs();
-  }, [fetchJobs]);
+  }, []);
 
   const totalPages = Math.ceil(totalJobs / limit);
 

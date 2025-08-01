@@ -77,7 +77,6 @@ const HomePage = () => {
       const handleSearch = async () => {
       try {
         const jobs = await axiosInstance(`/api/user/suggestions?query=${input}`);
-        console.log(jobs.data);
         setSuggestions(jobs.data)
       } catch {
         console.log("Something went wrong");

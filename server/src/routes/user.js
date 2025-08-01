@@ -5,9 +5,7 @@ import { verifyUser } from "../helper/verifyUser.js";
 import { generateToken } from "../helper/jwt.js";
 import { authenticate } from "../middlewares/authenticate.js";
 import { prisma } from "../helper/pooler.js";
-import { boolean } from "zod";
 const router = Router();
-
 
 router.post("/signup", async (req, res) => {
   const { fname, lname, email, password, role } = req.body;
