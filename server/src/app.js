@@ -18,7 +18,7 @@ app.use(cors(
         origin:process.env.Origin
     }
 ));
-
+console.log(new Date());
 app.use('/api/user',userRouter);
 app.use('/api/user/jobs',jobRouter);
 
