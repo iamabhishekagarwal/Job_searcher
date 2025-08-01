@@ -2,11 +2,16 @@ import { jobQueue } from '../queues/jobQueue.js';
 import { prisma } from '../helper/pooler.js';
 
 export async function enqueueJobsForCleanup() {
-    const today = new Date()
+    const now = new Date()
+    const startDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const endOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
   try {
     const jobs = await prisma.job.findMany({
         where:{
-            deadline:today
+            deadline:{
+              lt:endOfDay,
+              gte:startDay
+            }
         },
       select: {
         id: true,
@@ -18,7 +23,14 @@ export async function enqueueJobsForCleanup() {
       await jobQueue.add({
         jobId: job.id,
         jobUrl: job.jobUrl,
-        date:today
+        date:now
+      },{
+        delay:1000,
+        attempts:3,
+        backoff:{
+          type:"exponential",
+          delay:10000
+        },
       });
     }
 

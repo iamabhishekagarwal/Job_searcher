@@ -20,14 +20,14 @@ app.use(cors(
         origin:process.env.Origin
     }
 ));
-console.log(Date.now())
+console.log(new Date().setHours(0,0,0,0))
 app.use('/api/user',userRouter);
 app.use('/api/user/jobs',jobRouter);
 
-cron.schedule('0 0 * * *', async () => {
+cron.schedule('0 2 * * *', async () => {
   console.log("Starting cleanup job...");
   await enqueueJobsForCleanup();
-});
+});      
 
 app.listen(process.env.port,async()=>{
     console.log("Server is listening on port ",process.env.port);
