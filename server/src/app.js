@@ -5,6 +5,8 @@ import userRouter from './routes/user.js';
 import cookieParser from 'cookie-parser';
 import qs from "qs";
 import jobRouter from './routes/jobs.js';
+import { enqueueJobsForCleanup } from './cron/enqueueJobsCleanup.js';
+import cron from 'node-cron'
 
 const app = express();
 app.set("query parser", str => qs.parse(str));
@@ -18,9 +20,14 @@ app.use(cors(
         origin:process.env.Origin
     }
 ));
-
+console.log(Date.now())
 app.use('/api/user',userRouter);
 app.use('/api/user/jobs',jobRouter);
+
+cron.schedule('0 0 * * *', async () => {
+  console.log("Starting cleanup job...");
+  await enqueueJobsForCleanup();
+});
 
 app.listen(process.env.port,async()=>{
     console.log("Server is listening on port ",process.env.port);

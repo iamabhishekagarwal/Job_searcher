@@ -130,7 +130,7 @@ router.get("/me", authenticate, async (req, res) => {
   }
 });
 
-router.get("/suggestions", authenticate, async (req, res) => {
+router.get("/suggestions", async (req, res) => {
   const query = req.query.query;
   query.toString();
   try {
@@ -149,7 +149,7 @@ router.get("/suggestions", authenticate, async (req, res) => {
   }
 });
 
-router.get("/filters", authenticate, async (req, res) => {
+router.get("/filters", async (req, res) => {
   const { type, query = "", limit = 20 } = req.query;
   const fieldMap = {
     tags: "tags",
@@ -229,7 +229,7 @@ router.get("/filters", authenticate, async (req, res) => {
 
 //filtered Jobs takes selected filters from FE and returns all the jobs that have atleat one tag in common with the all the selected tags
 
-router.get("/getJobs", authenticate, async (req, res) => {
+router.get("/getJobs", async (req, res) => {
   try {
     const {
       tags = [],
