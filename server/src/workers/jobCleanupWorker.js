@@ -8,7 +8,7 @@ const proxyUrl = "http://hrqsqetk-rotate:01mulhsbe3b3@p.webshare.io:80";
 jobQueue.process(async (job, done) => {
   const jobUrl = job.data.jobUrl;
   const jobId = job.data.jobId;
-  const date = job.data.date;
+  const date = new Date(job.data.date);
   try {
     const res = await axios.get(jobUrl, {
       httpsAgent: new HttpsProxyAgent(proxyUrl),
@@ -31,10 +31,10 @@ jobQueue.process(async (job, done) => {
       await prisma.job.delete({ where: { id: jobId } });
     } else {
       console.log(`Job ${jobId} is still active.`);
-      const newDate = date+(60*1000*60*24*7)  // 7 days
+      const newDate = new Date(date.getTime()+7 * 24 * 60 * 60 * 1000)  // 7 days
       await prisma.job.update({
         where:{
-            deadline:date
+            id:jobId
         },
         data:{
             deadline:newDate

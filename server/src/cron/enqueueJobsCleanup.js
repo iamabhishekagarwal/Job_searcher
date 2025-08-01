@@ -2,7 +2,7 @@ import { jobQueue } from '../queues/jobQueue.js';
 import { prisma } from '../helper/pooler.js';
 
 export async function enqueueJobsForCleanup() {
-    const today = Date.now()
+    const today = new Date()
   try {
     const jobs = await prisma.job.findMany({
         where:{
