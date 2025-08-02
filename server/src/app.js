@@ -20,11 +20,11 @@ app.use(cors(
         origin:process.env.Origin
     }
 ));
-console.log(new Date().setHours(0,0,0,0))
+console.log(new Date())
 app.use('/api/user',userRouter);
 app.use('/api/user/jobs',jobRouter);
 
-cron.schedule('0 2 * * *', async () => {
+cron.schedule('40 18 * * *', async () => {
   console.log("Starting cleanup job...");
   await enqueueJobsForCleanup();
 });      
