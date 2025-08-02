@@ -114,7 +114,12 @@ const jobCardVariants = {
   },
 };
 
-const FloatingBlob = ({ delay = 0, duration = 20, size = 200, color = "rgba(59, 130, 246, 0.1)" }) => (
+const FloatingBlob = ({
+  delay = 0,
+  duration = 20,
+  size = 200,
+  color = "rgba(59, 130, 246, 0.1)",
+}) => (
   <motion.div
     className="absolute rounded-full"
     style={{
@@ -233,7 +238,14 @@ const AllJobsPage = () => {
         setLoading(false);
       })
       .catch((e) => console.error(e));
-  }, [selected.tags, selected.locations, selected.companies, selected.vias, page, limit]);
+  }, [
+    selected.tags,
+    selected.locations,
+    selected.companies,
+    selected.vias,
+    page,
+    limit,
+  ]);
 
   useEffect(() => {
     fetchJobs();
@@ -248,7 +260,7 @@ const AllJobsPage = () => {
         <FloatingBlob delay={0} size={300} color="rgba(59, 130, 246, 0.15)" />
         <FloatingBlob delay={2} size={200} color="rgba(147, 51, 234, 0.1)" />
         <FloatingBlob delay={4} size={250} color="rgba(16, 185, 129, 0.1)" />
-        
+
         <motion.div
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
@@ -260,7 +272,9 @@ const AllJobsPage = () => {
             transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
             className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full mx-auto mb-4"
           />
-          <p className="text-xl font-sans text-gray-700">Loading amazing opportunities...</p>
+          <p className="text-xl font-sans text-gray-700">
+            Loading amazing opportunities...
+          </p>
         </motion.div>
       </div>
     );
@@ -292,7 +306,9 @@ const AllJobsPage = () => {
             className="bg-white/70 backdrop-blur-lg rounded-2xl p-6 shadow-lg border border-white/20"
             variants={filterItemVariants}
           >
-            <h3 className="text-lg font-semibold mb-4 text-gray-800">Filters</h3>
+            <h3 className="text-lg font-semibold mb-4 text-gray-800">
+              Filters
+            </h3>
             <div className="space-y-4">
               {filterTypes.map(({ key, label }, index) => (
                 <motion.div
@@ -303,8 +319,12 @@ const AllJobsPage = () => {
                   <FilterInput
                     label={label}
                     query={queries[key]}
-                    setQuery={(val) => setQueries((prev) => ({ ...prev, [key]: val }))}
-                    suggestions={suggestions[key].filter((item) => !selected[key].includes(item))}
+                    setQuery={(val) =>
+                      setQueries((prev) => ({ ...prev, [key]: val }))
+                    }
+                    suggestions={suggestions[key].filter(
+                      (item) => !selected[key].includes(item)
+                    )}
                     onSelect={(updateFn) => {
                       setSelected((prev) => ({
                         ...prev,
@@ -326,7 +346,10 @@ const AllJobsPage = () => {
             onClick={fetchJobs}
             className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold py-3 px-6 rounded-xl shadow-lg transition duration-300 transform hover:scale-105"
             variants={filterItemVariants}
-            whileHover={{ scale: 1.05, boxShadow: "0 10px 25px rgba(0,0,0,0.2)" }}
+            whileHover={{
+              scale: 1.05,
+              boxShadow: "0 10px 25px rgba(0,0,0,0.2)",
+            }}
             whileTap={{ scale: 0.95 }}
           >
             Apply Filters
@@ -347,7 +370,9 @@ const AllJobsPage = () => {
             <h2 className="text-2xl font-bold text-gray-800 mb-2">
               Available Positions ({jobs.length})
             </h2>
-            <p className="text-gray-600">Discover your next career opportunity</p>
+            <p className="text-gray-600">
+              Discover your next career opportunity
+            </p>
           </motion.div>
 
           <motion.div
@@ -369,7 +394,7 @@ const AllJobsPage = () => {
                   layout
                 >
                   {/* Company logo */}
-                  <motion.div 
+                  <motion.div
                     className="flex items-center mb-4"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
@@ -387,8 +412,12 @@ const AllJobsPage = () => {
                       </div>
                     )}
                     <div className="ml-4">
-                      <h3 className="text-xl font-bold text-gray-800">{job.title}</h3>
-                      <p className="text-sm font-medium text-gray-600">{job.companyName}</p>
+                      <h3 className="text-xl font-bold text-gray-800">
+                        {job.title}
+                      </h3>
+                      <p className="text-sm font-medium text-gray-600">
+                        {job.companyName}
+                      </p>
                       <p className="text-sm text-gray-500">
                         {job.location} • {job.experience} • {job.jobType}
                       </p>
@@ -418,7 +447,19 @@ const AllJobsPage = () => {
                   {/* Footer */}
                   <div className="text-xs text-gray-500 mb-4 flex justify-between">
                     <span>Posted: {job.postedAt}</span>
-                    <span>Via: {job.via}</span>
+                    <div className="flex flex-col">
+                      {new Date(job.lastVerified).toLocaleDateString() ===
+                      "1/1/1970" ? (
+                        <></>
+                      ) : (
+                        <span className="text-xs text-gray-500">
+                          Last verified:{" "}
+                          {new Date(job.lastVerified).toLocaleDateString()}
+                        </span>
+                      )}
+
+                      <span>Via: {job.via}</span>
+                    </div>
                   </div>
 
                   {/* Apply button */}
