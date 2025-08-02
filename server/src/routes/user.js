@@ -5,9 +5,10 @@ import { verifyUser } from "../helper/verifyUser.js";
 import { generateToken } from "../helper/jwt.js";
 import { authenticate } from "../middlewares/authenticate.js";
 import { prisma } from "../helper/pooler.js";
+import { authLimiter, globalLimiter, searchLimiter } from "../middlewares/rateLimiter.js";
 const router = Router();
 
-router.post("/signup", async (req, res) => {
+router.post("/signup",authLimiter, async (req, res) => {
   const { fname, lname, email, password, role } = req.body;
   const inputValidation = userSchema.safeParse({
     firstName: fname,
@@ -31,8 +32,8 @@ router.post("/signup", async (req, res) => {
       });
       res.cookie("token", token, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "None",
+        // secure: process.env.NODE_ENV === "production",
+        sameSite: "Lax",
         maxAge: 60 * 60 * 1000,
       });
       return res.json({ success: false, msg: "User already exists" });
@@ -44,7 +45,7 @@ router.post("/signup", async (req, res) => {
   }
 });
 
-router.post("/signin", async (req, res) => {
+router.post("/signin",authLimiter, async (req, res) => {
   const { email, password } = req.body;
   const inputValidation = userSchema.safeParse({ email, password });
 
@@ -67,8 +68,8 @@ router.post("/signin", async (req, res) => {
     const token = generateToken({ userId: user.id, email: user.email });
     res.cookie("token", token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "None",
+      // secure: process.env.NODE_ENV === "production",
+      sameSite: "Lax",
       maxAge: 60 * 60 * 1000,
     });
 
@@ -96,8 +97,8 @@ router.get("/logout", authenticate, async (req, res) => {
   try {
     res.clearCookie("token", {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "None",
+      // secure: process.env.NODE_ENV === "production",
+      sameSite: "Lax",
     });
     res
       .status(200)
@@ -130,7 +131,7 @@ router.get("/me", authenticate, async (req, res) => {
   }
 });
 
-router.get("/suggestions", async (req, res) => {
+router.get("/suggestions",searchLimiter, async (req, res) => {
   const query = req.query.query;
   query.toString();
   try {
@@ -229,7 +230,7 @@ router.get("/filters", async (req, res) => {
 
 //filtered Jobs takes selected filters from FE and returns all the jobs that have atleat one tag in common with the all the selected tags
 
-router.get("/getJobs", async (req, res) => {
+router.get("/getJobs",globalLimiter, async (req, res) => {
   try {
     const {
       tags = [],
