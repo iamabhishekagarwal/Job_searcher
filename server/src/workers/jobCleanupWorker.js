@@ -1,71 +1,91 @@
-// workers/jobCleanupWorker.js
+// // workers/jobCleanupWorker.js
+
 import puppeteer from "puppeteer-extra";
 import StealthPlugin from "puppeteer-extra-plugin-stealth";
-import AdBlockPlugin from "puppeteer-extra-plugin-adblocker";
-// import RecaptchaPlugin from 'puppeteer-extra-plugin-recaptcha'
+import proxyChain from "proxy-chain";
 import { prisma } from "../helper/pooler.js";
 import { jobQueue } from "../queues/jobQueue.js";
 import dotenv from "dotenv";
 dotenv.config();
 
-const proxyHost = process.env.proxyHost;
-const proxyUsername = process.env.proxyUsername;
-const proxyPassword = process.env.proxyPassword;
+const proxyUrlRaw = process.env.PROXY; // e.g. http://user:password@host:port
 
-puppeteer.use(StealthPlugin());
-puppeteer.use(AdBlockPlugin({ blockTrackersAndAnnoyances: true }));
-jobQueue.process(6,async (job, done) => {
-  const jobUrl = job.data.jobUrl;
-  const jobId = job.data.jobId;
-  const date = new Date(job.data.date);
+puppeteer.use(
+  StealthPlugin({
+    languages: ["en-US", "en"],
+    vendor: "Google Inc.",
+    platform: "Win32",
+    webglVendor: "Intel Inc.",
+    renderer: "Intel Iris OpenGL Engine",
+    fixHairline: true,
+  })
+);
+
+jobQueue.process(6, async (job, done) => {
+  const { jobUrl, jobId, date } = job.data;
   let browser;
+  let anonymizedProxyUrl;
+  let page;
   try {
+    // Anonymize proxy (handles any scheme and authentication)
+    anonymizedProxyUrl = await proxyChain.anonymizeProxy(proxyUrlRaw);
+
     browser = await puppeteer.launch({
-      headless: "new",
+      headless: true, // use true for older Puppeteer
       args: [
-        `--proxy-server=${proxyHost}`,
+        `--proxy-server=${anonymizedProxyUrl}`,
         "--no-sandbox",
         "--disable-setuid-sandbox",
+        "--ignore-certificate-errors",
+        "--ignore-ssl-errors",
+        "--disable-web-security",
+        "--disable-blink-features=AutomationControlled",
       ],
     });
-    const page = await browser.newPage();
-    await page.authenticate({
-      username: proxyUsername,
-      password: proxyPassword,
+
+    page = await browser.newPage();
+    console.log(`🟢 Navigating to ${jobUrl}...`);
+    const response = await page.goto(jobUrl, {
+      waitUntil: "networkidle0",
     });
-    await page.setUserAgent(
-      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/117.0.0.0 Safari/537.36"
-    );
-    await page.goto(jobUrl, { waitUntil: "domcontentloaded", timeout: 15000 });
-
-    const pageContent = await page.content();
+    await page.waitForSelector("#reg-apply-button", { visible: true });
+    console.log(`🔍 HTTP Status: ${response?.status()} for job ${jobId}`);
+    // Ensure page is loaded before reading content
+    const pageContent = await page.evaluate(() => document.body.innerText);
     const lowerCaseHtml = pageContent.toLowerCase();
-
-    // Look for key phrases that indicate the job is closed
+    // Check if job is closed
     if (
       lowerCaseHtml.includes("job not found") ||
       lowerCaseHtml.includes("application closed") ||
       lowerCaseHtml.includes("404") ||
       lowerCaseHtml.includes("no longer accepting applications")
     ) {
-      console.log(`Deleting job ${jobId}: no longer valid`);
-      await prisma.job.delete({ where: { id: jobId } });
+      console.log(`❌ Deleting job ${jobId}: no longer valid`);
+      console.log(page.url());
+
+      // await prisma.job.delete({ where: { id: jobId } });
     } else {
-      console.log(`Job ${jobId} is still active.`);
-      const newDate = new Date(date.getTime() + 7 * 24 * 60 * 60 * 1000); // 7 days
+      console.log(`✅ Job ${jobId} is still active.`);
+      const newDate = new Date(
+        new Date(date).getTime() + 7 * 24 * 60 * 60 * 1000
+      ); // +7 days
       await prisma.job.update({
-        where: {
-          id: jobId,
-        },
+        where: { id: jobId },
         data: {
           deadline: newDate,
+          lastVerified: new Date(),
         },
       });
     }
-
     done();
   } catch (err) {
-    console.error(`Error checking job ${jobId}:`, err.message);
-    done(err); // mark job as failed for retry if needed
+    console.error(`🛑 Error checking job ${jobId}:`, err);
+    done(err);
+    throw err; // Mark job as failed in Bull queue
+  } finally {
+    if (page) await page.close();
+    if (browser) await browser.close();
+    if (anonymizedProxyUrl)
+      await proxyChain.closeAnonymizedProxy(anonymizedProxyUrl, true);
   }
 });

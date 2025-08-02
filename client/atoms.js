@@ -11,7 +11,8 @@ export const userState = atom({
         lname:"",
         email:"",
         isAdmin:false,
-        role:"Employee"
+        role:"Employee",
+        recentHomeSearch:[]
     },
     effects_UNSTABLE:[persistAtom]
 })

@@ -20,27 +20,28 @@ model User {
 }
 
 model Job {
-  id          Int         @id @default(autoincrement())
-  title       String
-  category    String
-  companyName String
-  location    String
-  jobType     String
-  description String
-  salaryRange String?
-  postedAt    String?
-  deadline    DateTime?
-  isActive    Boolean     @default(true)
-  employerId  Int
-  companyLogo String
-  companyUrl  String?
-  experience  String
-  jobUrl      String?     @unique
-  rating      Float?
-  via         String?
-  tags        String[]
-  employer    User        @relation(fields: [employerId], references: [id])
-  SavedJobs   SavedJobs[]
+  id           Int         @id @default(autoincrement())
+  title        String
+  category     String
+  companyName  String
+  location     String
+  jobType      String
+  description  String
+  salaryRange  String?
+  postedAt     String?
+  deadline     DateTime?
+  isActive     Boolean     @default(true)
+  employerId   Int
+  companyLogo  String
+  companyUrl   String?
+  experience   String
+  jobUrl       String?     @unique
+  rating       Float?
+  via          String?
+  tags         String[]
+  lastVerified DateTime?
+  employer     User        @relation(fields: [employerId], references: [id])
+  SavedJobs    SavedJobs[]
 }
 
 model SavedJobs {
