@@ -122,7 +122,7 @@ const AllJobsPage = () => {
 
   useEffect(() => {
     fetchJobs();
-  }, []);
+  }, [page]);
 
   const totalPages = Math.ceil(totalJobs / limit);
 
