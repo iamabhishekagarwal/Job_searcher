@@ -295,6 +295,7 @@ const HomePage = () => {
             </div>
 
             <AnimatePresence>
+              <div className="z-100">
               {suggestions.length > 0 && (
                 <motion.ul
                   className="absolute left-0 right-0 bg-white/90 backdrop-blur-lg border border-white/20 rounded-2xl shadow-xl z-20 mt-2 max-h-60 overflow-auto"
@@ -316,7 +317,9 @@ const HomePage = () => {
                   ))}
                 </motion.ul>
               )}
+              </div>
             </AnimatePresence>
+
 
             <AnimatePresence>
               {user?.recentHomeSearch?.length > 0 && (
@@ -364,7 +367,7 @@ const HomePage = () => {
 
       {/* Job Listings */}
       <motion.section
-        className="px-6 py-12 max-w-6xl mx-auto relative z-10"
+        className="px-6 py-12 max-w-6xl mx-auto relative z-0"
         variants={sectionVariants}
         initial="initial"
         whileInView="animate"
