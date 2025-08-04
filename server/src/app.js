@@ -7,14 +7,22 @@ import cookieParser from 'cookie-parser';
 import qs from "qs";
 import { enqueueJobsForCleanup } from './cron/enqueueJobsCleanup.js';
 import cron from 'node-cron'
+import helmet from 'helmet'
 
 const app = express();
 app.set("query parser", str => qs.parse(str));
 dotenv.config()
 app.use(cookieParser())
 app.use(express.json());
-console.log(process.env.Origin)
-app.use(cors(
+
+app.use(
+  helmet.contentSecurityPolicy({
+    useDefaults: true,
+  })
+);
+app.use(helmet.referrerPolicy({ policy: "strict-origin-when-cross-origin" }));
+app.use(helmet.frameguard({ action: "deny" })); // Block all iframes
+app.use(helmet.hsts({ maxAge: 63072000, includeSubDomains: true, preload: true }));app.use(cors(
     {
         credentials:true,
         origin:process.env.Origin
