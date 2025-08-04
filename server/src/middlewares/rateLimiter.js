@@ -4,8 +4,8 @@ import rateLimit from 'express-rate-limit'
 
 
 export const globalLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  limit: 100,
+  windowMs:1 * 60 * 1000,
+  limit: 50,
   message: "Too many requests. Please try again later.",
   standardHeaders: true,
   legacyHeaders: false,
@@ -15,8 +15,8 @@ export const globalLimiter = rateLimit({
 });
 
 export const authLimiter = rateLimit({
-    limit:100,
-    windowMs:10 * 60 * 1000,
+    limit:50,
+    windowMs:1 *60 * 1000,
     legacyHeaders:false,
     standardHeaders:true,
     message:"Too many signup/login requests. Try again later!",
@@ -26,8 +26,8 @@ export const authLimiter = rateLimit({
 })
 
 export const searchLimiter = rateLimit({
-  windowMs: 8 * 60 * 1000,
-  max: 100,
+  windowMs:1 *60 * 1000,
+  max: 50,
   message: "Too many searches. Please slow down.",
   standardHeaders: true,
   legacyHeaders: false,

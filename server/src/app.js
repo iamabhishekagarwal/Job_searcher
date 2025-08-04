@@ -15,11 +15,13 @@ app.set("query parser", str => qs.parse(str));
 dotenv.config()
 app.use(cookieParser())
 app.use(express.json());
+app.disable('x-powered-by') 
+
 
 app.use(
   helmet.contentSecurityPolicy({
     useDefaults: true,
-  })
+  }),
 );
 app.use(helmet.referrerPolicy({ policy: "strict-origin-when-cross-origin" }));
 app.use(helmet.frameguard({ action: "deny" })); // Block all iframes
