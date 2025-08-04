@@ -34,14 +34,14 @@ async function main() {
             title: job.title,
             category: category,
             companyName: job.company,
-            location: job.location || "null",
-            jobType: "Full Time", // default or derive if available
+            location: job.location ,
+            jobType: job.jobType, 
             description: job.description || "",
             salaryRange: null,
             jobUrl: job.job_url || "",
             companyUrl: job.company_url || "",
             rating: parseFloat(job.rating) || 0.0,
-            postedAt: job.posted || new Date(), // or parse if available
+            postedAt: job.postedAt || new Date(), 
             deadline: new Date(),
             tags:job.tags || [],
             experience: job.experience || "Not mentioned",
