@@ -8,6 +8,7 @@ import qs from "qs";
 import { enqueueJobsForCleanup } from './cron/enqueueJobsCleanup.js';
 import cron from 'node-cron'
 import helmet from 'helmet'
+import deleteJobs from './cron/deleteJobs.js';
 
 const app = express();
 app.set("query parser", str => qs.parse(str));
@@ -35,7 +36,12 @@ app.use('/api/user/jobs',jobRouter);
 cron.schedule('40 18 * * *', async () => {
   console.log("Starting cleanup job...");
   await enqueueJobsForCleanup();
-});      
+});  
+
+cron.schedule('0 3 * * *',async()=>{
+  console.info("Deleting Job started....")
+  await deleteJobs();
+})
 
 app.listen(process.env.port,async()=>{
     console.log("Server is listening on port ",process.env.port);

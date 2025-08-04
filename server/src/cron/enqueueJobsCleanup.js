@@ -11,7 +11,8 @@ export async function enqueueJobsForCleanup() {
             deadline:{
               lt:endOfDay,
               gte:startDay
-            }
+            },
+            isActive:true
         },
       select: {
         id: true,
