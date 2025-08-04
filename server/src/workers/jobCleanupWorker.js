@@ -63,7 +63,7 @@ jobQueue.process(6, async (job, done) => {
       console.log(`❌ Deleting job ${jobId}: no longer valid`);
       console.log(page.url());
 
-      // await prisma.job.delete({ where: { id: jobId } });
+      await prisma.job.delete({ where: { id: jobId } });
     } else {
       console.log(`✅ Job ${jobId} is still active.`);
       const newDate = new Date(

@@ -4,7 +4,9 @@
   "main": "app.js",
   "type": "module",
   "scripts": {
-    "start": "npx prisma db pull && nodemon src/app.js"
+    "start": "npx prisma db pull && nodemon src/app.js",
+    "scrapeLinkedin":"node ./src/scrapers/linkedinScraper.js",
+    "scrapeNaukri":"node ./src/scrapers/naukriScraper.js"
   },
   "keywords": [],
   "author": "",

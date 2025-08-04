@@ -236,6 +236,8 @@ router.get("/getJobs", async (req, res) => {
       locations = [],
       companies = [],
       vias = [],
+      postedAt,
+      experience,
       page = 1,
       limit = 10,
     } = req.query;
@@ -266,15 +268,31 @@ router.get("/getJobs", async (req, res) => {
       parsedVias.length > 0 ? { via: { in: parsedVias } } : undefined,
     ].filter(Boolean);
 
+    if (experience) {
+      filters.push({
+        AND: [
+          { minExperience: { lte: Number(experience) } },
+          { maxExperience: { lte: Number(experience) } },
+        ],
+      });
+    }
+    let orderBy = undefined;
+
+    if (postedAt === "desc") {
+      orderBy = { postedAtDt: "asc" };
+    } else if (postedAt === "asc") {
+      orderBy = { postedAtDt: "desc" };
+    }
+
     const whereFilter = filters.length > 0 ? { AND: filters } : {};
 
     const skip = (Number(page) - 1) * Number(limit);
-
     const [jobs, totalCount] = await Promise.all([
       prisma.job.findMany({
         where: whereFilter,
         skip,
         take: Number(limit),
+        orderBy,
       }),
       prisma.job.count({
         where: whereFilter,
