@@ -51,6 +51,7 @@ async function main() {
             employer: {
               connect: { id: 1 }, // connect to default User (Admin or Company)
             },
+            lastVerified:new Date()
           },
         });
         inserted++;

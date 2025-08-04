@@ -5,8 +5,8 @@
   "type": "module",
   "scripts": {
     "start": "npx prisma db pull && nodemon src/app.js",
-    "scrapeLinkedin":"node ./src/scrapers/linkedinScraper.js",
-    "scrapeNaukri":"node ./src/scrapers/naukriScraper.js"
+    "scrapeLinkedin": "node ./src/scrapers/linkedinScraper.js",
+    "scrapeNaukri": "node ./src/scrapers/naukriScraper.js"
   },
   "keywords": [],
   "author": "",
@@ -24,8 +24,8 @@
     "env": "^0.0.2",
     "express": "^5.1.0",
     "express-rate-limit": "^8.0.1",
-    "helmet": "^8.1.0",
     "fs": "^0.0.1-security",
+    "helmet": "^8.1.0",
     "https-proxy-agent": "^7.0.6",
     "ioredis": "^5.7.0",
     "jsonwebtoken": "^9.0.2",
