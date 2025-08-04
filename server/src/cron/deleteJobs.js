@@ -1,4 +1,4 @@
-import { prisma } from "../helper/pooler";
+import { prisma } from "../helper/pooler.js";
 
 const deleteJobs = async () => {
   try {
