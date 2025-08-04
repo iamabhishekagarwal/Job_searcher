@@ -35,7 +35,7 @@ jobRouter.delete("/:id/delete",authenticate,async(req,res)=>{
             }
         })
         console.log(jobs)
-        const delJob = await prisma.savedJobs.delete({
+        await prisma.savedJobs.delete({
             where:{
                 id:jobs.id
             }

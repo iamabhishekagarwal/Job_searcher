@@ -60,10 +60,11 @@ jobQueue.process(6, async (job, done) => {
       lowerCaseHtml.includes("404") ||
       lowerCaseHtml.includes("no longer accepting applications")
     ) {
-      console.log(`❌ Deleting job ${jobId}: no longer valid`);
-      console.log(page.url());
-
-      // await prisma.job.delete({ where: { id: jobId } });
+      console.log(`Marking job as INACTIVE as ${jobId} is no longer valid`);
+      await prisma.job.update({
+        where: { id: jobId },
+        data: { isActive: false },
+      });
     } else {
       console.log(`✅ Job ${jobId} is still active.`);
       const newDate = new Date(
