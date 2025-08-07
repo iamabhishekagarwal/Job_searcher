@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "public"."Job" ADD COLUMN     "postedAtDt" TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP;

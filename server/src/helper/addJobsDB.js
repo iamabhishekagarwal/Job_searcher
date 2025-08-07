@@ -1,4 +1,4 @@
-import { prisma } from "../src/helper/pooler.js";
+import { prisma } from "./pooler.js";
 import fs from "fs";
 let timeelapsed = 0;
 let skipped = 0;
