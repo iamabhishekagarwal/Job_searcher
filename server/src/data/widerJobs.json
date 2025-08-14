@@ -1,6 +1,6 @@
 [
   {
-    "category": "Software & Web Engineering",
+    "category": "Software  Web Engineering",
     "titles": [
       "Frontend Developer",
       "Backend Developer",
@@ -22,7 +22,7 @@
       "Game Developer",
       "Embedded Systems Engineer",
       "Blockchain Developer",
-      "UI/UX Designer",
+      "UI UX Designer",
       "Product Designer",
       "Web Developer",
       "Software Architect",
@@ -31,7 +31,7 @@
     ]
   },
   {
-    "category": "Product Strategy & Design",
+    "category": "Product Strategy  Design",
     "titles": [
       "Product Manager",
       "Associate Product Manager",
@@ -45,7 +45,7 @@
     ]
   },
   {
-    "category": "Data Science & Analytics",
+    "category": "Data Science  Analytics",
     "titles": [
       "Business Analyst",
       "Data Engineer",
@@ -58,7 +58,7 @@
     ]
   },
   {
-    "category": "Digital Marketing & Sales",
+    "category": "Digital Marketing  Sales",
     "titles": [
       "Digital Marketing Manager",
       "SEO Specialist",
@@ -80,14 +80,14 @@
     ]
   },
   {
-    "category": "Finance & Corporate Operations",
+    "category": "Finance  Corporate Operations",
     "titles": [
       "Financial Analyst",
       "Investment Analyst",
       "Accountant",
       "Chartered Accountant",
       "Controller",
-      "Chief Financial Officer (CFO)",
+      "Chief Financial Officer",
       "Finance Associate",
       "Operations Manager",
       "Procurement Specialist",
@@ -98,7 +98,7 @@
     ]
   },
   {
-    "category": "Learning & Development",
+    "category": "Learning  Development",
     "titles": [
       "Instructional Designer",
       "Curriculum Developer",
@@ -111,7 +111,7 @@
     ]
   },
   {
-    "category": "Clinical & Health Services",
+    "category": "Clinical Health Services",
     "titles": [
       "Registered Nurse",
       "Clinical Research Associate",
@@ -128,47 +128,47 @@
       "Lab Technician",
       "Medical Assistant",
       "Paramedic",
-      "Emergency Medical Technician (EMT)"
+      "Emergency Medical Technician"
     ]
   },
   {
-    "category": "Pharmacy & Drug Development",
+    "category": "Pharmacy  Drug Development",
     "titles": [
       "Pharmacist",
       "Clinical Pharmacologist",
       "Regulatory Affairs Specialist",
-      "Quality Control (QC) Analyst",
-      "Quality Assurance (QA) Officer",
+      "Quality Control Analyst",
+      "Quality Ass Officer",
       "Formulation Development Scientist",
       "Pharmacovigilance Officer",
       "Drug Safety Associate",
       "Medical Science Liaison",
-      "Production / Process Technician",
+      "Production   Process Technician",
       "Pharmaceutical Sales Representative",
       "Product Registration Specialist",
-      "R&D Scientist",
+      "RD Scientist",
       "Medical Writer",
       "Biopharmaceutical Engineer"
     ]
   },
   {
-    "category": "Executive Leadership & HR",
+    "category": "Executive Leadership  HR",
     "titles": [
-      "Chief Executive Officer (CEO)",
-      "Chief Operating Officer (COO)",
-      "Chief Marketing Officer (CMO)",
-      "Chief Information Officer (CIO)",
-      "Chief Technology Officer (CTO)",
-      "Chief Data Officer (CDO)",
-      "Chief Security Officer (CSO)",
-      "Chief Human Resources Officer (CHRO)",
-      "Chief Compliance Officer (CCO)",
-      "Chief Risk Officer (CRO)",
+      "Chief Executive Officer",
+      "Chief Operating Officer",
+      "Chief Marketing Officer",
+      "Chief Information Officer",
+      "Chief Technology Officer",
+      "Chief Data Officer",
+      "Chief Security Officer",
+      "Chief Human Resources Officer ",
+      "Chief Compliance Officer",
+      "Chief Risk Officer",
       "HR Manager",
       "Talent Acquisition Specialist",
       "Recruitment Consultant",
       "HR Business Partner",
-      "Compensation & Benefits Analyst",
+      "Compensation  Benefits Analyst",
       "Labor Relations Specialist",
       "Employment Lawyer",
       "Legal Associate",
@@ -176,7 +176,7 @@
     ]
   },
   {
-    "category": "Media, Content & Communications",
+    "category": "Media, Content  Communications",
     "titles": [
       "Copywriter",
       "Content Writer",
@@ -193,7 +193,7 @@
     ]
   },
   {
-    "category": "Creative Arts & Design",
+    "category": "Creative Arts  Design",
     "titles": [
       "Illustrator",
       "Graphic Designer",
@@ -206,7 +206,7 @@
     ]
   },
   {
-    "category": "Skilled Trades & Field Work",
+    "category": "Skilled Trades  Field Work",
     "titles": [
       "Electrician",
       "Plumber",
@@ -233,51 +233,51 @@
     ]
   },
   {
-    "category": "Telecom & Network Engineering",
+    "category": "Telecom  Network Engineering",
     "titles": [
       "Telecom Engineer",
-      "Radio Frequency (RF) Engineer",
+      "Radio Frequency Engineer",
       "Transmission Engineer",
-      "Network Operations Center (NOC) Engineer",
+      "Network Operations Center Engineer",
       "Microwave Engineer",
       "Fiber Optics Engineer",
-      "Switching & Routing Engineer",
+      "Switching  Routing Engineer",
       "Field Service Technician",
       "Wireless Planning Engineer",
       "Telecom Project Manager",
       "Network Planning Engineer",
       "Sales Engineer",
       "Satellite Communications Engineer",
-      "Voice/Data Services Engineer",
+      "Voice Data Services Engineer",
       "Regulatory Affairs Specialist",
       "Network Security Engineer"
     ]
   },
   {
-    "category": "Electronics & Embedded Systems",
+    "category": "Electronics  Embedded Systems",
     "titles": [
       "Embedded Systems Engineer",
-      "VLSI/ASIC Design Engineer",
+      "VLSI ASIC Design Engineer",
       "FPGA Developer",
       "Signal Processing Engineer",
       "IoT Solutions Engineer",
-      "Automation & Control Engineer",
+      "Automation  Control Engineer",
       "Electronics Design Engineer",
       "PCB Layout Engineer",
-      "Test & Validation Engineer",
+      "Test  Validation Engineer",
       "Hardware Development Engineer",
       "Firmware Engineer",
       "Instrumentation Engineer",
-      "Audio/Video Electronics Engineer",
+      "Audio Video Electronics Engineer",
       "Electronics Test Technician"
     ]
   },
   {
-    "category": "Electrical Power & Controls",
+    "category": "Electrical Power  Controls",
     "titles": [
       "Power Systems Engineer",
       "Electrical Design Engineer",
-      "Protection & Relay Engineer",
+      "Protection Relay Engineer",
       "Substation Engineer",
       "Control Systems Engineer",
       "Maintenance Engineer",
@@ -289,7 +289,7 @@
       "Power Quality Engineer",
       "Lighting Systems Engineer",
       "Renewable Energy Engineer",
-      "Instrumentation & Control Engineer"
+      "Instrumentation  Control Engineer"
     ]
   }
 ]

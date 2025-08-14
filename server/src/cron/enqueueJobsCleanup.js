@@ -19,7 +19,6 @@ export async function enqueueJobsForCleanup() {
         jobUrl: true,
       },
     });
-
     for (const job of jobs) {
       await jobQueue.add({
         jobId: job.id,
