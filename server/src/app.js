@@ -65,7 +65,7 @@ cron.schedule('0 3 * * *',async()=>{
 
 //scraper cron job
 
-cron.schedule('* * * * *',async()=>{
+cron.schedule('0 * * * *',async()=>{
   if(resourcesAreFree()){
     console.info("⏳ Running scrapers for 5 minutes...");
     runScript("scrapeLinkedin");
