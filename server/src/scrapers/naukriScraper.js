@@ -39,7 +39,7 @@ try {
 }
 
 async function launchBrowser() {
-  const originalProxy = process.env.PROXY;
+  const originalProxy = process.env.PROXY2;
   console.log("🆕 Launching browser...");
 
   let proxy = null;

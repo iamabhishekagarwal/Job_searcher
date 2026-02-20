@@ -11,6 +11,11 @@ import helmet from 'helmet'
 import deleteJobs from './cron/deleteJobs.js';
 import resourcesAreFree from './helper/resourceCheck.js';
 import { exec } from "child_process";
+import parseHtmlLinkedin from './helper/converter/parseLinkedInCards.js';
+import { addJobs } from './helper/addInstance.js';
+import fs from 'fs';
+import { link } from 'fs';
+import path from 'path'
 
 function runScript(scriptName) {
   const child=exec(`npm run ${scriptName}`, (error, stdout, stderr) => {
@@ -65,17 +70,38 @@ cron.schedule('0 3 * * *',async()=>{
 
 //scraper cron job
 
-cron.schedule('0 * * * *',async()=>{
-  if(resourcesAreFree()){
-    console.info("⏳ Running scrapers for 5 minutes...");
-    runScript("scrapeLinkedin");
-    runScript("scrapeNaukri");
-  }
-  else{
-    console.info("Scraping is postponed due to heavy traffic")
-  }
+cron.schedule("* * * * *", async () => {
+  try {
+    if (!resourcesAreFree()) {
+      console.info("⚠️ Scraping postponed due to heavy traffic");
+      return;
+    }
 
-})
+    console.info("⏳ Running scrapers...");
+
+    // ✅ wait for scraping to finish
+    await runScript("scrapeLinkedin");
+    await runScript("scrapeNaukri");
+
+    // ✅ build full paths
+    const folderPath = path.resolve("../html/linkedin");
+
+    const filesLinkedin = fs
+      .readdirSync(folderPath)
+      .filter(file => file.endsWith(".html"))
+      .map(file => path.join(folderPath, file));
+
+    // ✅ parse
+    const linkedInData = parseHtmlLinkedin(filesLinkedin);
+
+    // ✅ insert into DB
+    await addJobs(linkedInData, 1);
+
+    console.info("✅ Jobs inserted successfully");
+  } catch (err) {
+    console.error("❌ Cron job failed:", err);
+  }
+});
 
 app.listen(process.env.port,async()=>{
     console.log("Server is listening on port ",process.env.port);

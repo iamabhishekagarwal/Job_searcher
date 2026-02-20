@@ -51,7 +51,7 @@ async function launchBrowser(proxy) {
 async function run() {
   const data = JSON.parse(fs.readFileSync("./src/data/widerJobs.json", "utf-8"));
 
-  const originalProxy = process.env.PROXY;
+  const originalProxy = process.env.PROXY1;
   const anonymizedProxy = await proxyChain.anonymizeProxy(originalProxy);
   console.log(`Using anonymized proxy: ${anonymizedProxy}`);
 

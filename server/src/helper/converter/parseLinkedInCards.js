@@ -42,7 +42,7 @@ function parseHtmlLinkedin(htmlPaths) {
       const rating = null;
       const reviews = null;
       const tags = [];
-
+      const ratingReviewURL = null;
       const isActive = element
         .find(".job-posting-benefits__text")
         .text()
