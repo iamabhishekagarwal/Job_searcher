@@ -27,38 +27,53 @@ puppeteer.use(
   })
 );
 
-let completionLogs = JSON.parse(readFileSync("./../logs/naukri.json", "utf-8"));
+let completionLogs = {};
+try {
+  completionLogs = JSON.parse(readFileSync("./../logs/naukri.json", "utf-8"));
+} catch {
+  completionLogs = {
+    currentCategory: null,
+    currentTitle: null,
+    currentPage: 1,
+  };
+}
 
 async function launchBrowser() {
   const originalProxy = process.env.PROXY2;
-  console.log("🆕 Launching browser with proxy:");
+  console.log("🆕 Launching browser...");
 
-  const proxy = await anonymizeProxy(originalProxy);
-  console.log("🆕 Launching browser with proxy:", proxy);
+  let proxy = null;
+  if (originalProxy) {
+    proxy = await anonymizeProxy(originalProxy);
+    console.log("  Using proxy:", proxy);
+  }
 
   const browser = await puppeteer.launch({
     headless: true,
     args: [
-      `--proxy-server=${proxy}`,
+      proxy ? `--proxy-server=${proxy}` : "",
       "--disable-blink-features=AutomationControlled",
       "--no-sandbox",
       "--ignore-certificate-errors",
       "--ignore-ssl-errors",
       "--disable-web-security",
-    ],
+    ].filter(Boolean),
   });
 
   return { browser, proxy };
 }
 
 async function closeBrowser(browserObj) {
-  await browserObj.browser.close();
-  await closeAnonymizedProxy(browserObj.proxy, true);
+  try {
+    await browserObj.browser.close();
+  } catch {}
+  if (browserObj.proxy) {
+    await closeAnonymizedProxy(browserObj.proxy, true);
+  }
   console.log("🛑 Closed browser and proxy");
 }
 
 async function run() {
-  let resumeCategory = false;
   const data = JSON.parse(readFileSync("./src/data/widerJobs.json", "utf-8"));
 
   let browserObj = await launchBrowser();
@@ -68,8 +83,9 @@ async function run() {
   const outputDir = "./../html/naukri";
   if (!existsSync(outputDir)) mkdirSync(outputDir, { recursive: true });
 
+  let resumeCategory = !completionLogs.currentCategory;
   for (let i = 0; i < data.length; i++) {
-    let section = data[i];
+    const section = data[i];
     if (!resumeCategory) {
       if (section.category === completionLogs.currentCategory) {
         resumeCategory = true;
@@ -77,10 +93,10 @@ async function run() {
         continue;
       }
     }
-    let resumeTitle = false;
 
+    let resumeTitle = !completionLogs.currentTitle;
     for (let j = 0; j < section.titles.length; j++) {
-      let title = section.titles[j];
+      const title = section.titles[j];
       if (!resumeTitle) {
         if (title === completionLogs.currentTitle) {
           resumeTitle = true;
@@ -91,22 +107,18 @@ async function run() {
 
       const slug = title.toLowerCase().replace(/\s+/g, "-");
 
-      // Determine total pages
+      // Get total pages
       let totalPages = 1;
       {
         const page = await browserObj.browser.newPage();
         try {
           const url1 = `https://www.naukri.com/${slug}-jobs-1`;
-          await page.goto(url1, {
-            waitUntil: "domcontentloaded",
-            timeout: 30000,
-          });
-          await page.waitForSelector("span.styles_count-string__DlPaZ", {
-            timeout: 10000,
-          });
+          await page.goto(url1, { waitUntil: "domcontentloaded", timeout: 30000 });
+          await page.waitForSelector("span.styles_count-string__DlPaZ", { timeout: 10000 });
+
           const countString = await page.$eval(
             "span.styles_count-string__DlPaZ",
-            (el) => el.textContent
+            el => el.textContent
           );
           const match = countString.match(/of\s+(\d+)/i);
           if (match) {
@@ -114,7 +126,7 @@ async function run() {
             totalPages = Math.ceil(totalJobs / 20);
           }
         } catch (err) {
-          console.error(`❌ Error determining total pages for ${slug}:`, err);
+          console.error(`❌ Error getting total pages for ${slug}:`, err.message);
         } finally {
           await page.close();
         }
@@ -122,14 +134,9 @@ async function run() {
 
       console.log(`🔎 "${title}" → ${totalPages} pages`);
 
-      // Resume from the correct page
-      let startPage =
-        resumeTitle && completionLogs.currentPage
-          ? completionLogs.currentPage
-          : 1;
-
+      let startPage = completionLogs.currentTitle === title ? completionLogs.currentPage : 1;
       for (let pageNum = startPage; pageNum <= totalPages; pageNum++) {
-        // Restart browser every PAGES_PER_BROWSER
+        // Restart browser if needed
         if (pagesScraped >= PAGES_PER_BROWSER) {
           await closeBrowser(browserObj);
           browserObj = await launchBrowser();
@@ -140,35 +147,27 @@ async function run() {
         const url = `https://www.naukri.com/${slug}-jobs-${pageNum}`;
         console.log(`🌐 Loading page ${pageNum} of ${totalPages}: ${url}`);
 
-        // Prevent popups
-        page.on("popup", async (popup) => {
+        page.on("popup", async popup => {
           try {
             await popup.close();
           } catch {}
         });
 
-        // Retry navigation on detached-frame errors
         let tries = 0;
         while (tries < 3) {
           try {
-            await page.goto(url, {
-              waitUntil: "domcontentloaded",
-              timeout: 30000,
-            });
-            await page.waitForSelector("div.cust-job-tuple", {
-              timeout: 10000,
-            });
+            await page.goto(url, { waitUntil: "domcontentloaded", timeout: 30000 });
+            await page.waitForSelector("div.cust-job-tuple", { timeout: 10000 });
             break;
           } catch (err) {
-            const msg = err.message || "";
-            if (msg.includes("detached Frame")) {
+            if (err.message.includes("detached frame")) {
               console.warn(`⚠️ Detached frame on page ${pageNum}, retrying...`);
               tries++;
               await page.close();
               page = await browserObj.browser.newPage();
               continue;
             } else {
-              console.error(`❌ Fatal navigation error on ${url}:`, err);
+              console.error(`❌ Navigation error on ${url}:`, err.message);
               break;
             }
           }
@@ -177,23 +176,14 @@ async function run() {
         try {
           const cards = await page.$$("div.cust-job-tuple");
           console.log(`  ✅ Found ${cards.length} job cards`);
-          for (let i = 0; i < cards.length; i++) {
-            const outerHTML = await page.evaluate(
-              (el) => el.outerHTML,
-              cards[i]
-            );
-            const filename = path.join(
-              outputDir,
-              `${slug}_p${pageNum}_c${i}.html`
-            );
+
+          for (let k = 0; k < cards.length; k++) {
+            const outerHTML = await page.evaluate(el => el.outerHTML, cards[k]);
+            const filename = path.join(outputDir, `${slug}_p${pageNum}_c${k}.html`);
             writeFileSync(filename, outerHTML, "utf-8");
           }
         } catch (err) {
-          saveLog();
-          console.error(
-            `❌ Error extracting/saving cards on page ${pageNum}:`,
-            err
-          );
+          console.error(`❌ Error saving cards on page ${pageNum}:`, err.message);
         } finally {
           await page.close();
         }
@@ -202,18 +192,22 @@ async function run() {
         pagesScraped++;
 
         // Update progress
-        completionLogs.currentPage = pageNum + 1; // Next page to process
+        completionLogs.currentCategory = section.category;
+        completionLogs.currentTitle = title;
+        completionLogs.currentPage = pageNum + 1;
         saveLog();
       }
 
-      // Title completed
+      // Move to next title
       completionLogs.currentTitle = section.titles[j + 1] ?? null;
-      completionLogs.currentPage = 1; // Reset page for next title
+      completionLogs.currentPage = 1;
       saveLog();
     }
 
-    // Category completed
+    // Move to next category
     completionLogs.currentCategory = data[i + 1]?.category ?? null;
+    completionLogs.currentTitle = null;
+    completionLogs.currentPage = 1;
     saveLog();
   }
 
