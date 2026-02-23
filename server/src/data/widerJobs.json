@@ -1,295 +1,77 @@
 [
   {
-    "category": "Software  Web Engineering",
+    "category": "Software & Web Engineering",
     "titles": [
+      "Software Engineer",
       "Frontend Developer",
       "Backend Developer",
       "Full Stack Developer",
-      "DevOps Engineer",
-      "Data Scientist",
-      "Data Analyst",
-      "Machine Learning Engineer",
-      "AI Researcher",
+      "Web Developer",
       "Mobile App Developer",
-      "iOS Developer",
       "Android Developer",
+      "iOS Developer",
+      "DevOps Engineer",
+      "Site Reliability Engineer",
+      "Cloud Engineer",
       "QA Engineer",
       "Test Automation Engineer",
-      "Cloud Engineer",
-      "Site Reliability Engineer",
+      "Game Developer",
+      "Blockchain Developer"
+    ]
+  },
+  {
+    "category": "Data & AI",
+    "titles": [
+      "Data Analyst",
+      "Data Scientist",
+      "Machine Learning Engineer",
+      "AI Engineer",
+      "NLP Engineer",
+      "Data Engineer",
+      "Business Intelligence Developer",
+      "BI Developer",
+      "Data Visualization Specialist"
+    ]
+  },
+  {
+    "category": "Security & Infrastructure",
+    "titles": [
       "Cybersecurity Analyst",
       "Security Engineer",
-      "Game Developer",
-      "Embedded Systems Engineer",
-      "Blockchain Developer",
-      "UI UX Designer",
-      "Product Designer",
-      "Web Developer",
-      "Software Architect",
+      "Network Security Engineer",
       "Systems Engineer",
-      "Technical Support Engineer"
+      "Network Engineer",
+      "Cloud Security Engineer"
     ]
-  },
+  },  
   {
-    "category": "Product Strategy  Design",
+    "category": "Intern & Apprenticeship Programs",
     "titles": [
-      "Product Manager",
-      "Associate Product Manager",
-      "UX Researcher",
-      "Interaction Designer",
-      "Visual Designer",
-      "Creative Director",
-      "Design Lead",
-      "Information Architect",
-      "Content Designer"
-    ]
-  },
-  {
-    "category": "Data Science  Analytics",
-    "titles": [
-      "Business Analyst",
-      "Data Engineer",
-      "Data Visualization Specialist",
-      "BI Developer",
-      "Market Research Analyst",
-      "Data Quality Analyst",
-      "NLP Engineer",
-      "Data Operations Manager"
-    ]
-  },
-  {
-    "category": "Digital Marketing  Sales",
-    "titles": [
-      "Digital Marketing Manager",
-      "SEO Specialist",
-      "Content Strategist",
-      "Social Media Manager",
-      "Growth Hacker",
-      "Performance Marketer",
-      "PPC Specialist",
-      "Email Marketing Specialist",
-      "Marketing Analyst",
-      "Brand Manager",
-      "Affiliate Manager",
-      "Inside Sales Representative",
-      "Account Executive",
-      "Sales Development Representative",
-      "Customer Success Manager",
-      "Territory Sales Manager",
-      "Business Development Executive"
-    ]
-  },
-  {
-    "category": "Finance  Corporate Operations",
-    "titles": [
-      "Financial Analyst",
-      "Investment Analyst",
-      "Accountant",
-      "Chartered Accountant",
-      "Controller",
-      "Chief Financial Officer",
-      "Finance Associate",
-      "Operations Manager",
-      "Procurement Specialist",
-      "Inventory Manager",
-      "Risk Analyst",
-      "Compliance Officer",
-      "Tax Consultant"
-    ]
-  },
-  {
-    "category": "Learning  Development",
-    "titles": [
-      "Instructional Designer",
-      "Curriculum Developer",
-      "Subject Matter Expert",
-      "Academic Advisor",
-      "Online Tutor",
-      "Corporate Trainer",
-      "Teaching Assistant",
-      "eLearning Developer"
-    ]
-  },
-  {
-    "category": "Clinical Health Services",
-    "titles": [
-      "Registered Nurse",
-      "Clinical Research Associate",
-      "Clinical Data Analyst",
-      "Physiotherapist",
-      "Occupational Therapist",
-      "Radiographer",
-      "Radiologist",
-      "Dentist",
-      "Optometrist",
-      "Speech Therapist",
-      "Dietitian",
-      "Medical Laboratory Scientist",
-      "Lab Technician",
-      "Medical Assistant",
-      "Paramedic",
-      "Emergency Medical Technician"
-    ]
-  },
-  {
-    "category": "Pharmacy  Drug Development",
-    "titles": [
-      "Pharmacist",
-      "Clinical Pharmacologist",
-      "Regulatory Affairs Specialist",
-      "Quality Control Analyst",
-      "Quality Assurance Officer",
-      "Formulation Development Scientist",
-      "Pharmacovigilance Officer",
-      "Drug Safety Associate",
-      "Medical Science Liaison",
-      "Production   Process Technician",
-      "Pharmaceutical Sales Representative",
-      "Product Registration Specialist",
-      "RD Scientist",
-      "Medical Writer",
-      "Biopharmaceutical Engineer"
-    ]
-  },
-  {
-    "category": "Executive Leadership  HR",
-    "titles": [
-      "Chief Executive Officer",
-      "Chief Operating Officer",
-      "Chief Marketing Officer",
-      "Chief Information Officer",
-      "Chief Technology Officer",
-      "Chief Data Officer",
-      "Chief Security Officer",
-      "Chief Human Resources Officer ",
-      "Chief Compliance Officer",
-      "Chief Risk Officer",
-      "HR Manager",
-      "Talent Acquisition Specialist",
-      "Recruitment Consultant",
-      "HR Business Partner",
-      "Compensation  Benefits Analyst",
-      "Labor Relations Specialist",
-      "Employment Lawyer",
-      "Legal Associate",
-      "Contract Manager"
-    ]
-  },
-  {
-    "category": "Media, Content  Communications",
-    "titles": [
-      "Copywriter",
-      "Content Writer",
-      "Technical Writer",
-      "Editor",
-      "Journalist",
-      "Scriptwriter",
-      "Video Editor",
-      "Motion Graphics Designer",
-      "Voice-over Artist",
-      "Translator",
-      "Content Strategist",
-      "Proofreader"
-    ]
-  },
-  {
-    "category": "Creative Arts  Design",
-    "titles": [
-      "Illustrator",
-      "Graphic Designer",
-      "Animator",
-      "Art Director",
-      "Fashion Designer",
-      "Interior Designer",
-      "3D Artist",
-      "Game Designer"
-    ]
-  },
-  {
-    "category": "Skilled Trades  Field Work",
-    "titles": [
-      "Electrician",
-      "Plumber",
-      "Carpenter",
-      "Welder",
-      "HVAC Technician",
-      "Crane Operator",
-      "Forklift Operator",
-      "Mason",
-      "Painter",
-      "Roofer",
-      "Pipefitter",
-      "Machine Operator",
-      "Maintenance Technician",
-      "Logistics Coordinator",
-      "Construction Worker",
-      "Site Supervisor",
-      "Technician",
-      "Architect",
-      "Mechanical Engineer",
-      "Field Sales Agent",
-      "Delivery Associate",
-      "Warehouse Manager"
-    ]
-  },
-  {
-    "category": "Telecom  Network Engineering",
-    "titles": [
-      "Telecom Engineer",
-      "Radio Frequency Engineer",
-      "Transmission Engineer",
-      "Network Operations Center Engineer",
-      "Microwave Engineer",
-      "Fiber Optics Engineer",
-      "Switching  Routing Engineer",
-      "Field Service Technician",
-      "Wireless Planning Engineer",
-      "Telecom Project Manager",
-      "Network Planning Engineer",
-      "Sales Engineer",
-      "Satellite Communications Engineer",
-      "Voice Data Services Engineer",
-      "Regulatory Affairs Specialist",
-      "Network Security Engineer"
-    ]
-  },
-  {
-    "category": "Electronics  Embedded Systems",
-    "titles": [
-      "Embedded Systems Engineer",
-      "VLSI ASIC Design Engineer",
-      "FPGA Developer",
-      "Signal Processing Engineer",
-      "IoT Solutions Engineer",
-      "Automation  Control Engineer",
-      "Electronics Design Engineer",
-      "PCB Layout Engineer",
-      "Test  Validation Engineer",
-      "Hardware Development Engineer",
-      "Firmware Engineer",
-      "Instrumentation Engineer",
-      "Audio Video Electronics Engineer",
-      "Electronics Test Technician"
-    ]
-  },
-  {
-    "category": "Electrical Power  Controls",
-    "titles": [
-      "Power Systems Engineer",
-      "Electrical Design Engineer",
-      "Protection Relay Engineer",
-      "Substation Engineer",
-      "Control Systems Engineer",
-      "Maintenance Engineer",
-      "Energy Auditor",
-      "Distribution Engineer",
-      "Project Manager",
-      "SCADA Engineer",
-      "Motor Control Engineer",
-      "Power Quality Engineer",
-      "Lighting Systems Engineer",
-      "Renewable Energy Engineer",
-      "Instrumentation  Control Engineer"
+      "Software Engineer Intern",
+      "Frontend Developer Intern",
+      "Backend Developer Intern",
+      "Full Stack Developer Intern",
+      "Data Analyst Intern",
+      "Data Scientist Intern",
+      "Machine Learning Intern",
+      "Cloud Intern",
+      "DevOps Intern",
+      "Cybersecurity Intern",
+      "QA Intern",
+      "Mobile Developer Intern",
+
+      "Software Engineer Apprentice",
+      "Developer Apprentice",
+      "Graduate Apprentice",
+      "Graduate Engineer Trainee",
+      "Engineering Trainee",
+      "Technical Trainee",
+      "IT Trainee",
+      "Management Trainee Technology",
+      "Apprenticeship Program Technology",
+      "Graduate Program Technology",
+      "Entry Level Software Engineer",
+      "Fresher Software Engineer"
     ]
   }
 ]

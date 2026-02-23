@@ -2,39 +2,47 @@ import { jobQueue } from '../queues/jobQueue.js';
 import { prisma } from '../helper/pooler.js';
 
 export async function enqueueJobsForCleanup() {
-    const now = new Date()
-    const startDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const endOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
   try {
+    const now = new Date();
+
+    // Fetch expired active jobs
     const jobs = await prisma.job.findMany({
-        where:{
-            deadline:{
-              lt:endOfDay,
-              gte:startDay
-            },
-            isActive:true
+      where: {
+        deadline: {
+          lte: now,     // deadline has passed
         },
+        isActive: true,
+      },
       select: {
         id: true,
         jobUrl: true,
       },
     });
-    for (const job of jobs) {
-      await jobQueue.add({
-        jobId: job.id,
-        jobUrl: job.jobUrl,
-        date:now
-      },{
-        delay:1000,
-        attempts:3,
-        backoff:{
-          type:"exponential",
-          delay:10000
-        },
-      });
+
+    if (jobs.length === 0) {
+      console.log('No expired jobs found');
+      return;
     }
 
-    console.log(`Enqueued ${jobs.length} jobs for cleanup`);
+    for (const job of jobs) {
+      await jobQueue.add(
+        {
+          jobId: job.id,
+          jobUrl: job.jobUrl,
+        },
+        {
+          attempts: 3,
+          backoff: {
+            type: 'exponential',
+            delay: 10000,
+          },
+          removeOnComplete: true,
+          removeOnFail: false,
+        }
+      );
+    }
+
+    console.log(`Enqueued ${jobs.length} expired jobs for cleanup`);
   } catch (err) {
     console.error('Failed to enqueue jobs:', err);
   }

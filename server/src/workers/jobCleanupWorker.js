@@ -8,7 +8,7 @@ import { jobQueue } from "../queues/jobQueue.js";
 import dotenv from "dotenv";
 dotenv.config();
 
-const proxyUrlRaw = process.env.PROXY; // e.g. http://user:password@host:port
+const proxyUrlRaw = process.env.PROXY1; // e.g. http://user:password@host:port
 
 puppeteer.use(
   StealthPlugin({
@@ -33,7 +33,7 @@ jobQueue.process(6, async (job, done) => {
     browser = await puppeteer.launch({
       headless: true, // use true for older Puppeteer
       args: [
-        `--proxy-server=${anonymizedProxyUrl}`,
+        // `--proxy-server=${anonymizedProxyUrl}`,
         "--no-sandbox",
         "--disable-setuid-sandbox",
         "--ignore-certificate-errors",
@@ -81,7 +81,6 @@ jobQueue.process(6, async (job, done) => {
     done();
   } catch (err) {
     console.error(`🛑 Error checking job ${jobId}:`, err);
-    done(err);
     throw err; // Mark job as failed in Bull queue
   } finally {
     if (page) await page.close();

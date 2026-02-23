@@ -89,7 +89,9 @@ async function run() {
       console.log(`🔖 Title: ${title}`);
 
       const newTitle = title.toLowerCase().replace(/\s+/g, "-");
-      const url = `https://in.linkedin.com/jobs/${newTitle}-jobs`;
+      const url = `https://in.linkedin.com/jobs/search/?keywords=${encodeURIComponent(
+        newTitle
+      )}&location=India&f_TPR=r86400&f_E=1%2C2`;
       console.log(`🌐 Loading URL: ${url}`);
 
       try {
@@ -121,7 +123,7 @@ async function run() {
           await page.click("button.contextual-sign-in-modal__modal-dismiss, button.sign-in-modal__dismiss", { timeout: 5000 });
           console.log("❎ Closed sign-in popup.");
           await sleep(2000);
-        } catch {}
+        } catch { }
 
         // Pagination simulation: Scroll and click "See more jobs" up to a max
         let lastJobCount = 0;

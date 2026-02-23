@@ -2,13 +2,24 @@ import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
+function isWithin24Hours(dateString) {
+  if (!dateString) return false;
+
+  const date = new Date(dateString);
+
+  if (isNaN(date.getTime())) return false;
+
+  const diffHours = (Date.now() - date.getTime()) / (1000 * 60 * 60);
+
+  return diffHours <= 24;
+}
 /**
  * Convert scraped job → Prisma Job model
  */
 function mapToJobModel(job, employerId = 1) {
   return {
     title: job.title || "Untitled",
-    category: "Software", // you can improve later with NLP
+    category: "Software",
     companyName: job.company || "Unknown",
     location: job.location || "Not specified",
     jobType: job.jobType || "Not Mentioned",
@@ -16,7 +27,7 @@ function mapToJobModel(job, employerId = 1) {
     salaryRange: job.salaryRange || null,
     postedAt: job.postedAt || null,
     deadline: null,
-    isActive: job.isActive ?? true,
+    isActive: true,
     employerId,
 
     companyLogo: job.logo || "",
@@ -29,7 +40,9 @@ function mapToJobModel(job, employerId = 1) {
     tags: job.tags || [],
 
     lastVerified: new Date(),
-    postedAtDt: job.postedAt ? new Date(job.postedAt) : new Date(),
+
+    // 🔥 DO NOT default to new Date()
+    postedAtDt: null,
 
     minExperience: null,
     maxExperience: null,
@@ -37,18 +50,30 @@ function mapToJobModel(job, employerId = 1) {
 }
 
 /**
- * Bulk insert jobs
+ * Bulk insert jobs (ONLY last 24 hours)
  */
-
 export async function addJobs(jobsArray, employerId = 1) {
   try {
-    const mappedJobs = jobsArray.map(job =>
+    // 🔥 FILTER HERE
+    console.log("DEBUG postedAt values:");
+jobsArray.slice(0, 10).forEach(j => console.log(j.postedAt));
+console.log("Filtering jobs posted within the last 24 hours..."); 
+    const filteredJobs = jobsArray.filter(job =>
+      isWithin24Hours(job.postedAt)
+    );
+
+    if (filteredJobs.length === 0) {
+      console.log("⛔ No jobs within 24 hours. Nothing inserted.");
+      return;
+    }
+
+    const mappedJobs = filteredJobs.map(job =>
       mapToJobModel(job, employerId)
     );
 
     const result = await prisma.job.createMany({
       data: mappedJobs,
-      skipDuplicates: true, // 🔥 avoids crash on same jobUrl
+      skipDuplicates: true, // prevents duplicate jobUrl crash
     });
 
     console.log(`✅ Inserted ${result.count} jobs`);

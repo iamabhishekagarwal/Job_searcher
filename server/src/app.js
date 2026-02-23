@@ -11,7 +11,9 @@ import helmet from "helmet";
 import deleteJobs from "./cron/deleteJobs.js";
 import resourcesAreFree from "./helper/resourceCheck.js";
 import { exec } from "child_process";
+import { prisma } from "./helper/pooler.js";
 import parseHtmlLinkedin from "./helper/converter/parseLinkedInCards.js";
+import parseHtmlNaukri from "./helper/converter/parseNaukriCards.js";
 import { addJobs } from "./helper/addInstance.js";
 import fs from "fs";
 import { link } from "fs";
@@ -28,13 +30,7 @@ function runScript(scriptName) {
     }
     console.log(`📄 ${scriptName} output:\n${stdout}`);
   });
-  setTimeout(
-    () => {
-      console.warn(`⏹ Stopping ${scriptName} after 5 minutes`);
-      child.kill("SIGTERM"); // or "SIGKILL" if you want it immediate
-    },
-    0.5 * 60 * 1000,
-  );
+  
 }
 
 const app = express();
@@ -63,7 +59,7 @@ app.use(
 app.use("/api/user", userRouter);
 app.use("/api/user/jobs", jobRouter);
 
-cron.schedule("40 18 * * *", async () => {
+cron.schedule("47 15 * * *", async () => {
   console.log("Starting cleanup job...");
   await enqueueJobsForCleanup();
 });
@@ -73,14 +69,35 @@ cron.schedule("0 3 * * *", async () => {
   await deleteJobs();
 });
 
+cron.schedule("00 16 * * *", async () => {
+  try {
+    const now = new Date();
+
+    const cutoffDate = new Date(now);
+    cutoffDate.setDate(now.getDate() - 30);
+
+    const result = await prisma.job.deleteMany({
+      where: {
+        postedAtDt: {
+          lte: cutoffDate,
+        },
+      },
+    });
+
+    console.log(`Deleted ${result.count} jobs older than 30 days`);
+  } catch (err) {
+    console.error('Error deleting old jobs:', err);
+  }});
+
+
 //scraper cron job
 
 cron.schedule("* * * * *", async () => {
   try {
-    if (!resourcesAreFree()) {
-      console.info("⚠️ Scraping postponed due to heavy traffic");
-      return;
-    }
+    // if (!resourcesAreFree()) {
+    //   console.info("⚠️ Scraping postponed due to heavy traffic");
+    //   return;
+    // }
 
     console.info("⏳ Running scrapers...");
 
