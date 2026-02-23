@@ -5,10 +5,8 @@ import userRouter from "./routes/user.js";
 import jobRouter from "./routes/jobs.js";
 import cookieParser from "cookie-parser";
 import qs from "qs";
-import { enqueueJobsForCleanup } from "./cron/enqueueJobsCleanup.js";
 import cron from "node-cron";
 import helmet from "helmet";
-import deleteJobs from "./cron/deleteJobs.js";
 import resourcesAreFree from "./helper/resourceCheck.js";
 import { exec } from "child_process";
 import { prisma } from "./helper/pooler.js";
@@ -62,26 +60,16 @@ app.use(
 app.use("/api/user", userRouter);
 app.use("/api/user/jobs", jobRouter);
 
-cron.schedule("47 15 * * *", async () => {
-  console.log("Starting cleanup job...");
-  await enqueueJobsForCleanup();
-});
-
-cron.schedule("0 3 * * *", async () => {
-  console.info("Deleting Job started....");
-  await deleteJobs();
-});
-
-cron.schedule("00 16 * * *", async () => {
+cron.schedule("10 4 * * *", async () => {
   try {
     const now = new Date();
 
     const cutoffDate = new Date(now);
-    cutoffDate.setDate(now.getDate() - 30);
+    cutoffDate.setDate(now.getDate() - process.env.Delete_date);
 
     const result = await prisma.job.deleteMany({
       where: {
-        postedAtDt: {
+        postedAt: {
           lte: cutoffDate,
         },
       },
@@ -97,7 +85,7 @@ cron.schedule("00 16 * * *", async () => {
    🕒 SCRAPER CRON (TEST - LINKEDIN ONLY)
 ========================= */
 
-cron.schedule("* * * * *", async () => {
+cron.schedule("0 */2 * * *", async () => {
   try {
     console.info("⏳ Running job scrapers...");
 
