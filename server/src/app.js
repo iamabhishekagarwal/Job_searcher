@@ -30,7 +30,10 @@ function runScript(scriptName) {
     }
     console.log(`📄 ${scriptName} output:\n${stdout}`);
   });
-  
+  setTimeout(() => {
+    child.kill();
+  }, 100000);
+
 }
 
 const app = express();
@@ -87,63 +90,88 @@ cron.schedule("00 16 * * *", async () => {
     console.log(`Deleted ${result.count} jobs older than 30 days`);
   } catch (err) {
     console.error('Error deleting old jobs:', err);
-  }});
+  }
+});
 
-
-//scraper cron job
+/* =========================
+   🕒 SCRAPER CRON (TEST - LINKEDIN ONLY)
+========================= */
 
 cron.schedule("* * * * *", async () => {
   try {
-    // if (!resourcesAreFree()) {
-    //   console.info("⚠️ Scraping postponed due to heavy traffic");
-    //   return;
-    // }
+    console.info("⏳ Running job scrapers...");
 
-    console.info("⏳ Running scrapers...");
-
+    /* =======================
+       🔵 RUN SCRAPERS
+    ======================= */
     await runScript("scrapeLinkedin");
     await runScript("scrapeNaukri");
 
-    // =======================
-    // 🔵 LINKEDIN
-    // =======================
-    const linkedinPath = path.resolve("../html/linkedin");
+    /* =======================
+       🔵 LINKEDIN PARSE
+    ======================= */
+    const linkedinPath = path.resolve("../html/linkedIn");
 
-    const filesLinkedin = fs
-      .readdirSync(linkedinPath)
-      .filter((file) => file.endsWith(".html"))
-      .map((file) => path.join(linkedinPath, file));
+    let linkedInData = [];
 
-    const linkedInData = parseHtmlLinkedin(filesLinkedin);
+    if (fs.existsSync(linkedinPath)) {
+      const filesLinkedin = fs
+        .readdirSync(linkedinPath)
+        .filter((file) => file.endsWith(".html"))
+        .map((file) => path.join(linkedinPath, file));
 
-    // =======================
-    // 🟡 NAUKRI
-    // =======================
+      console.log(`📂 LinkedIn files: ${filesLinkedin.length}`);
+
+      if (filesLinkedin.length > 0) {
+        linkedInData = parseHtmlLinkedin(filesLinkedin);
+        console.log(`📊 Parsed LinkedIn jobs: ${linkedInData.length}`);
+      }
+    } else {
+      console.warn("⚠️ LinkedIn folder missing");
+    }
+
+    /* =======================
+       🟡 NAUKRI PARSE
+    ======================= */
     const naukriPath = path.resolve("../html/naukri");
 
-    const filesNaukri = fs
-      .readdirSync(naukriPath)
-      .filter((file) => file.endsWith(".html"))
-      .map((file) => path.join(naukriPath, file));
+    let naukriData = [];
 
-    const naukriData = parseHtmlNaukri(filesNaukri);
+    if (fs.existsSync(naukriPath)) {
+      const filesNaukri = fs
+        .readdirSync(naukriPath)
+        .filter((file) => file.endsWith(".html"))
+        .map((file) => path.join(naukriPath, file));
 
-    // =======================
-    // 🧠 COMBINE DATA
-    // =======================
+      console.log(`📂 Naukri files: ${filesNaukri.length}`);
+
+      if (filesNaukri.length > 0) {
+        naukriData = parseHtmlNaukri(filesNaukri);
+        console.log(`📊 Parsed Naukri jobs: ${naukriData.length}`);
+      }
+    } else {
+      console.warn("⚠️ Naukri folder missing");
+    }
+
+    /* =======================
+       💾 COMBINE + INSERT
+    ======================= */
     const allJobs = [
       ...linkedInData.map((job) => ({ ...job, sourceId: 1 })),
       ...naukriData.map((job) => ({ ...job, sourceId: 2 })),
     ];
 
-    // =======================
-    // 💾 INSERT ONCE
-    // =======================
+    if (allJobs.length === 0) {
+      console.warn("⚠️ No jobs to insert");
+      return;
+    }
+
     await addJobs(allJobs);
 
-    console.info("✅ Jobs inserted successfully");
+    console.info(`✅ Inserted ${allJobs.length} jobs`);
+
   } catch (err) {
-    console.error("❌ Cron job failed:", err);
+    console.error("❌ Cron failed:", err);
   }
 });
 
