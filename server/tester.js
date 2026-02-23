@@ -1,7 +1,4 @@
-import parseHtmlLinkedin from "./src/helper/converter/parseLinkedInCards.js"
-const paths1=[
-  "../html/linkedIn/frontend-developer_62.html"
-]
+import parseHtmlNaukri from "./src/helper/converter/parseNaukriCards.js";
+const paths1 = ["../html/naukri/full-stack-developer-intern_p3_c11.html"];
 
-
-console.log(parseHtmlLinkedin(paths1))
+console.log(parseHtmlNaukri(paths1));

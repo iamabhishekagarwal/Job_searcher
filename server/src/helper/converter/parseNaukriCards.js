@@ -4,50 +4,77 @@ import * as cheerio from "cheerio";
 function parseHtmlNaukri(htmlPaths) {
   const allJobs = [];
 
-  for (const path of htmlPaths) {
-    const html = readFileSync(path, "utf8");
+  for (const filePath of htmlPaths) {
+    const html = readFileSync(filePath, "utf8");
     const $ = cheerio.load(html);
+
     const jobCards = $(".cust-job-tuple");
 
     jobCards.each((_, el) => {
       const element = $(el);
 
       const title = element.find("a.title").text().trim() || "";
-      const job_url = element.find("a.title").attr("href")?.trim() || "";
-      const company = element.find(".comp-name span").text().trim() || "";
+
+      const job_url =
+        element.find("a.title").attr("href")?.trim() || "";
+
+      // ✅ FIXED
+      const company =
+        element.find(".comp-name").text().trim() || "";
+
       const company_url =
-        element.find(".comp-name a").attr("href")?.trim() || null;
-      const rating = element.find(".rating").text().trim() || null;
-      const ratingReviewURL=element.find(".review.ver-line").attr("href")?.trim() || null;
-      const reviews = element.find(".review.ver-line").text().trim() || null;
-      const experience = element.find(".exp").text().trim() || "";
-      const location = element.find(".loc").text().trim() || "";
+        element.find(".comp-name").attr("href")?.trim() || null;
 
-      const rawDesc = element.find(".job-desc").text().trim();
-      const description =
-        rawDesc.length > 100 ? rawDesc.substring(0, 100) + "..." : rawDesc;
+      const rating =
+        element.find(".rating .main-2").text().trim() || null;
 
-      const tags = element
-        .find(".tags .tag")
-        .map((_, tagEl) => {
-          return $(tagEl).text().trim();
-        })
-        .get();
+      const reviews =
+        element.find(".review").text().trim() || null;
 
-      const postedAt =
-        element.find(".type br + span").text().trim() ||
-        element.find(".type span").last().text().trim() ||
+      const ratingReviewURL =
+        element.find(".review").attr("href")?.trim() || null;
+
+      // ✅ FIXED experience
+      const experience =
+        element.find(".exp span").attr("title")?.trim() ||
+        element.find(".exp span").text().trim() ||
         "";
 
-      const logo = element.find(".imagewrap img").attr("src")?.trim() || null;
+      // ✅ FIXED location
+      const location =
+        element.find(".loc span").attr("title")?.trim() ||
+        element.find(".loc span").text().trim() ||
+        "";
 
-      const isActive = true; // Always true unless explicitly specified
+      // ❌ No description in this card
+      const description = "";
+
+      // ❌ Tags usually empty here
+      const tags = [];
+
+      // ✅ FIXED postedAt
+      const postedAt =
+        element.find(".job-post-day").text().trim() || "";
+
+      const logo =
+        element.find(".imagewrap img").attr("src")?.trim() || null;
+
+      // ✅ FIXED salary
       const salaryRange =
-        element.find(".salary").text().trim() || "Not Mentioned";
-      const jobType = "Not Mentioned"; // Update if you find a selector
+        element.find(".sal span").attr("title")?.trim() ||
+        element.find(".sal span").text().trim() ||
+        "Not Mentioned";
+
+      const jobType = "Not Mentioned";
+
+      const isActive = true;
+
       const via = job_url.includes("https://")
         ? job_url.split("https://")[1].split("/")[0]
         : "";
+
+      // ✅ Skip invalid entries
+      if (!title || !job_url) return;
 
       allJobs.push({
         title,
