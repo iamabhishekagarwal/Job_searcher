@@ -18,27 +18,51 @@ import { addJobs } from "./helper/addInstance.js";
 import fs from "fs";
 import { link } from "fs";
 import path from "path";
-
 import { spawn } from "child_process";
 
 function runScript(scriptName) {
-  const child = spawn("npm", ["run", scriptName], {
-    detached: true, // 👈 important
-    stdio: "inherit",
-  });
+  const scripts = {
+    scrapeLinkedin: "./src/scrapers/linkedinScraper.js",
+    scrapeNaukri: "./src/scrapers/naukriScraper.js",
+  };
 
-  const timeout = setTimeout(() => {
-    console.log("⏱️ Killing full process tree...");
+  const file = scripts[scriptName];
 
-    try {
-      process.kill(-child.pid, "SIGKILL"); // 👈 kills ALL children
-    } catch (err) {
-      console.error("Kill failed:", err.message);
-    }
-  }, 100000);
+  if (!file) {
+    return Promise.reject(new Error("Invalid script"));
+  }
 
-  child.on("exit", () => {
-    clearTimeout(timeout);
+  return new Promise((resolve, reject) => {
+    const child = spawn("node", [file], {
+      detached: true,
+      stdio: "inherit",
+    });
+
+    // ⏱️ timeout protection
+    const timeout = setTimeout(() => {
+      console.log(`⏱️ ${scriptName} timeout, killing...`);
+      try {
+        process.kill(-child.pid, "SIGTERM");
+      } catch (err) {
+        console.error("Kill failed:", err.message);
+      }
+    }, 60000);
+
+    child.on("exit", (code) => {
+      clearTimeout(timeout);
+
+      if (code === 0) {
+        console.log(`✅ ${scriptName} finished`);
+        resolve();
+      } else {
+        reject(new Error(`${scriptName} exited with code ${code}`));
+      }
+    });
+
+    child.on("error", (err) => {
+      clearTimeout(timeout);
+      reject(err);
+    });
   });
 }
 
@@ -103,7 +127,7 @@ cron.schedule("00 16 * * *", async () => {
    🕒 SCRAPER CRON (TEST - LINKEDIN ONLY)
 ========================= */
 
-cron.schedule("* * * * *", async () => {
+cron.schedule("*/2 * * * *", async () => {
   try {
     console.info("⏳ Running job scrapers...");
 
@@ -111,7 +135,7 @@ cron.schedule("* * * * *", async () => {
        🔵 RUN SCRAPERS
     ======================= */
     await runScript("scrapeLinkedin");
-    await runScript("scrapeNaukri");
+    // await runScript("scrapeNaukri");
 
     /* =======================
        🔵 LINKEDIN PARSE
@@ -139,32 +163,32 @@ cron.schedule("* * * * *", async () => {
     /* =======================
        🟡 NAUKRI PARSE
     ======================= */
-    const naukriPath = path.resolve("../html/naukri");
+    // const naukriPath = path.resolve("../html/naukri");
 
-    let naukriData = [];
+    // let naukriData = [];
 
-    if (fs.existsSync(naukriPath)) {
-      const filesNaukri = fs
-        .readdirSync(naukriPath)
-        .filter((file) => file.endsWith(".html"))
-        .map((file) => path.join(naukriPath, file));
+    // if (fs.existsSync(naukriPath)) {
+    //   const filesNaukri = fs
+    //     .readdirSync(naukriPath)
+    //     .filter((file) => file.endsWith(".html"))
+    //     .map((file) => path.join(naukriPath, file));
 
-      console.log(`📂 Naukri files: ${filesNaukri.length}`);
+    //   console.log(`📂 Naukri files: ${filesNaukri.length}`);
 
-      if (filesNaukri.length > 0) {
-        naukriData = parseHtmlNaukri(filesNaukri);
-        console.log(`📊 Parsed Naukri jobs: ${naukriData.length}`);
-      }
-    } else {
-      console.warn("⚠️ Naukri folder missing");
-    }
+    //   if (filesNaukri.length > 0) {
+    //     naukriData = parseHtmlNaukri(filesNaukri);
+    //     console.log(`📊 Parsed Naukri jobs: ${naukriData.length}`);
+    //   }
+    // } else {
+    //   console.warn("⚠️ Naukri folder missing");
+    // }
 
     /* =======================
        💾 COMBINE + INSERT
     ======================= */
     const allJobs = [
       ...linkedInData.map((job) => ({ ...job, sourceId: 1 })),
-      ...naukriData.map((job) => ({ ...job, sourceId: 2 })),
+      // ...naukriData.map((job) => ({ ...job, sourceId: 2 })),
     ];
 
     if (allJobs.length === 0) {

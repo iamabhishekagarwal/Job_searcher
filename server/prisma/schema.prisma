@@ -29,7 +29,6 @@ model Job {
   jobType       String
   description   String
   salaryRange   String?
-  postedAt      String?
   deadline      DateTime?
   isActive      Boolean       @default(true)
   employerId    Int
@@ -44,6 +43,7 @@ model Job {
   postedAtDt    DateTime?     @default(now())
   maxExperience Int?
   minExperience Int?
+  postedAt      DateTime      @default(now())
   AppliedJobs   AppliedJobs[]
   employer      User          @relation(fields: [employerId], references: [id])
   SavedJobs     SavedJobs[]
