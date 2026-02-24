@@ -19,7 +19,7 @@ puppeteer.use(
     webglVendor: "Intel Inc.",
     renderer: "Intel Iris OpenGL Engine",
     fixHairline: true,
-  })
+  }),
 );
 
 /* =========================
@@ -82,248 +82,277 @@ async function launchBrowser(proxy) {
 async function run() {
   logStep("START", "Script started");
 
-  const data = JSON.parse(
-    fs.readFileSync("./src/data/widerJobs.json", "utf-8")
-  );
-  // console.log(data);
-  const originalProxy = process.env.PROXY1;
-  const anonymizedProxy = await proxyChain.anonymizeProxy(originalProxy);
+  let browser;
+  let anonymizedProxy;
 
-  logStep("PROXY", `Using proxy: ${anonymizedProxy}`);
+  try {
+    const data = JSON.parse(
+      fs.readFileSync("./src/data/widerJobs.json", "utf-8"),
+    );
 
-  const browser = await launchBrowser(anonymizedProxy);
-  const page = await browser.newPage();
+    const originalProxy = process.env.PROXY1;
+    anonymizedProxy = await proxyChain.anonymizeProxy(originalProxy);
 
-  logStep("PAGE", "New page created");
+    logStep("PROXY", `Using proxy: ${anonymizedProxy}`);
 
-  let resumeCategory = !completionLogs.currentCategory;
-  let resumeTitle = !completionLogs.currentTitle;
+    browser = await launchBrowser(anonymizedProxy);
+    const page = await browser.newPage();
 
-  for (let i = 0; i < data.length; i++) {
-    const section = data[i];
+    logStep("PAGE", "New page created");
 
-    if (!resumeCategory) {
-      if (section.category === completionLogs.currentCategory) {
-        resumeCategory = true;
-      } else continue;
-    }
-    console.log(section.category + " end ");
-    if (!fs.existsSync(HTML_DIR)) {
-      fs.mkdirSync(HTML_DIR, { recursive: true });
-      logStep("FS", "Created HTML directory");
-    }
+    /* =========================
+       🔁 YOUR EXISTING LOOP
+    ========================= */
 
-    for (let j = 0; j < section.titles.length; j++) {
-      const title = section.titles[j];
+    for (let i = 0; i < data.length; i++) {
+      const section = data[i];
 
-      if (!resumeTitle) {
-        if (title === completionLogs.currentTitle) {
-          resumeTitle = true;
+      if (!resumeCategory) {
+        if (section.category === completionLogs.currentCategory) {
+          resumeCategory = true;
         } else continue;
       }
-
-      logStep("CATEGORY", section.category);
-      logStep("TITLE", title);
-
-      const newTitle = title.toLowerCase().replace(/\s+/g, "-");
-
-      const url = `https://in.linkedin.com/jobs/search/?keywords=${newTitle}&location=India&f_TPR=r86400&f_E=1%2C2`;
-
-      logStep("NAV", `Navigating to ${url}`);
-
-      try {
-        /* =========================
-           🌐 NAVIGATION RETRY
-        ========================= */
-        let tries = 0;
-
-        while (tries < 3) {
-          try {
-            logStep("NAV", `Attempt ${tries + 1}`);
-
-            await page.goto(url, {
-              waitUntil: "domcontentloaded",
-              timeout: 30000,
-            });
-
-            const currentUrl = page.url();
-            const pageTitle = await page.title();
-
-            logStep("NAV", `Loaded URL: ${currentUrl}`);
-            logStep("NAV", `Page title: ${pageTitle}`);
-
-            if (pageTitle.toLowerCase().includes("login")) {
-              logStep("BLOCKED", "⚠️ Redirected to login page");
-            }
-
-            // Save debug HTML
-            const html = await page.content();
-            fs.writeFileSync("debug_page.html", html);
-
-            await page.waitForSelector("div.base-card", {
-              timeout: 15000,
-            });
-
-            logStep("NAV", "Job cards detected");
-            break;
-
-          } catch (err) {
-            tries++;
-            logStep("ERROR", `Navigation error: ${err.message}`);
-
-            if (tries === 3) throw err;
-          }
-        }
-
-        /* =========================
-           ❎ CLOSE POPUP
-        ========================= */
-        try {
-          logStep("POPUP", "Trying to close popup...");
-          await page.click(
-            "button.contextual-sign-in-modal__modal-dismiss, button.sign-in-modal__dismiss",
-            { timeout: 5000 }
-          );
-          logStep("POPUP", "Popup closed");
-          await sleep(2000);
-        } catch {
-          logStep("POPUP", "No popup found");
-        }
-
-        /* =========================
-           🔄 SCROLL + LOAD MORE
-        ========================= */
-        let lastJobCount = 0;
-        let clicks = 0;
-
-        while (true) {
-          logStep("SCROLL", "Scrolling...");
-
-          await page.evaluate(() =>
-            window.scrollTo(0, document.body.scrollHeight)
-          );
-
-          await sleep(2000 + Math.random() * 2000);
-
-          const jobCount = await page.$$eval(
-            "div.base-card",
-            (cards) => cards.length
-          );
-
-          logStep("DATA", `Jobs loaded: ${jobCount}`);
-
-          const moreButton = await page.$(
-            "button.infinite-scroller__show-more-button.infinite-scroller__show-more-button--visible"
-          );
-
-          if (moreButton) {
-            logStep("ACTION", "Found 'See more jobs'");
-
-            await moreButton.evaluate((btn) =>
-              btn.scrollIntoView({ block: "center" })
-            );
-
-            await sleep(1000);
-
-            await moreButton.click();
-            clicks++;
-
-            logStep("ACTION", `Clicked (${clicks})`);
-
-            await sleep(3000 + Math.random() * 2000);
-
-            if (clicks > 50) {
-              logStep("LIMIT", "Max clicks reached");
-              break;
-            }
-
-          } else {
-            logStep("ACTION", "No button found");
-
-            if (jobCount === lastJobCount) {
-              logStep("STOP", "No new jobs, stopping");
-              break;
-            }
-
-            lastJobCount = jobCount;
-          }
-        }
-
-        /* =========================
-           📦 EXTRACT DATA
-        ========================= */
-        const cards = await page.$$("div.base-card");
-
-        logStep("EXTRACT", `Total cards: ${cards.length}`);
-
-        for (let k = 0; k < cards.length; k++) {
-          const html = await page.evaluate(
-            (el) => el.outerHTML,
-            cards[k]
-          );
-
-          const filePath = path.join(
-            HTML_DIR,
-            `${newTitle}_${k}.html`
-          );
-
-          fs.writeFileSync(filePath, html);
-
-          logStep("SAVE", `Saved ${newTitle}_${k}.html`);
-        }
-
-      } catch (err) {
-        logStep("FATAL", `Error scraping ${title}`);
-        console.error(err.message);
-        console.error(err.stack);
-
-        try {
-          await page.screenshot({
-            path: `debug_${newTitle}.png`,
-            fullPage: true,
-          });
-          logStep("DEBUG", "Screenshot saved");
-        } catch { }
-
-        saveLog(completionLogs);
-        throw err;
+      console.log(section.category + " end ");
+      if (!fs.existsSync(HTML_DIR)) {
+        fs.mkdirSync(HTML_DIR, { recursive: true });
+        logStep("FS", "Created HTML directory");
       }
 
-      /* =========================
+      for (let j = 0; j < section.titles.length; j++) {
+        const title = section.titles[j];
+
+        if (!resumeTitle) {
+          if (title === completionLogs.currentTitle) {
+            resumeTitle = true;
+          } else continue;
+        }
+
+        logStep("CATEGORY", section.category);
+        logStep("TITLE", title);
+
+        const newTitle = title.toLowerCase().replace(/\s+/g, "-");
+
+        const url = `https://in.linkedin.com/jobs/search/?keywords=${newTitle}&location=India&f_TPR=r86400&f_E=1%2C2`;
+
+        logStep("NAV", `Navigating to ${url}`);
+
+        try {
+          /* =========================
+           🌐 NAVIGATION RETRY
+        ========================= */
+          let tries = 0;
+
+          while (tries < 3) {
+            try {
+              logStep("NAV", `Attempt ${tries + 1}`);
+
+              await page.goto(url, {
+                waitUntil: "domcontentloaded",
+                timeout: 30000,
+              });
+
+              const currentUrl = page.url();
+              const pageTitle = await page.title();
+
+              logStep("NAV", `Loaded URL: ${currentUrl}`);
+              logStep("NAV", `Page title: ${pageTitle}`);
+
+              if (pageTitle.toLowerCase().includes("login")) {
+                logStep("BLOCKED", "⚠️ Redirected to login page");
+              }
+
+              // Save debug HTML
+              const html = await page.content();
+              fs.writeFileSync("debug_page.html", html);
+
+              await page.waitForSelector("div.base-card", {
+                timeout: 15000,
+              });
+
+              logStep("NAV", "Job cards detected");
+              break;
+            } catch (err) {
+              tries++;
+              logStep("ERROR", `Navigation error: ${err.message}`);
+
+              if (tries === 3) throw err;
+            }
+          }
+
+          /* =========================
+           ❎ CLOSE POPUP
+        ========================= */
+          try {
+            logStep("POPUP", "Trying to close popup...");
+            await page.click(
+              "button.contextual-sign-in-modal__modal-dismiss, button.sign-in-modal__dismiss",
+              { timeout: 5000 },
+            );
+            logStep("POPUP", "Popup closed");
+            await sleep(2000);
+          } catch {
+            logStep("POPUP", "No popup found");
+          }
+
+          /* =========================
+           🔄 SCROLL + LOAD MORE
+        ========================= */
+          let lastJobCount = 0;
+          let clicks = 0;
+
+          while (true) {
+            logStep("SCROLL", "Scrolling...");
+
+            await page.evaluate(() =>
+              window.scrollTo(0, document.body.scrollHeight),
+            );
+
+            await sleep(2000 + Math.random() * 2000);
+
+            const jobCount = await page.$$eval(
+              "div.base-card",
+              (cards) => cards.length,
+            );
+
+            logStep("DATA", `Jobs loaded: ${jobCount}`);
+
+            const moreButton = await page.$(
+              "button.infinite-scroller__show-more-button.infinite-scroller__show-more-button--visible",
+            );
+
+            if (moreButton) {
+              logStep("ACTION", "Found 'See more jobs'");
+
+              await moreButton.evaluate((btn) =>
+                btn.scrollIntoView({ block: "center" }),
+              );
+
+              await sleep(1000);
+
+              await moreButton.click();
+              clicks++;
+
+              logStep("ACTION", `Clicked (${clicks})`);
+
+              await sleep(3000 + Math.random() * 2000);
+
+              if (clicks > 50) {
+                logStep("LIMIT", "Max clicks reached");
+                break;
+              }
+            } else {
+              logStep("ACTION", "No button found");
+
+              if (jobCount === lastJobCount) {
+                logStep("STOP", "No new jobs, stopping");
+                break;
+              }
+
+              lastJobCount = jobCount;
+            }
+          }
+
+          /* =========================
+           📦 EXTRACT DATA
+        ========================= */
+          const cards = await page.$$("div.base-card");
+
+          logStep("EXTRACT", `Total cards: ${cards.length}`);
+
+          for (let k = 0; k < cards.length; k++) {
+            const html = await page.evaluate((el) => el.outerHTML, cards[k]);
+
+            const filePath = path.join(HTML_DIR, `${newTitle}_${k}.html`);
+
+            fs.writeFileSync(filePath, html);
+
+            logStep("SAVE", `Saved ${newTitle}_${k}.html`);
+          }
+        } catch (err) {
+          logStep("FATAL", `Error scraping ${title}`);
+          console.error(err.message);
+          console.error(err.stack);
+
+          try {
+            await page.screenshot({
+              path: `debug_${newTitle}.png`,
+              fullPage: true,
+            });
+            logStep("DEBUG", "Screenshot saved");
+          } catch {}
+
+          saveLog(completionLogs);
+          throw err;
+        }
+
+        /* =========================
          💾 SAVE PROGRESS
       ========================= */
-      completionLogs.currentCategory = section.category;
-      completionLogs.currentTitle =
-        section.titles[j + 1] ?? null;
+        completionLogs.currentCategory = section.category;
+        completionLogs.currentTitle = section.titles[j + 1] ?? null;
+
+        saveLog(completionLogs);
+
+        if (completionLogs.currentTitle === null) break;
+      }
+
+      completionLogs.currentCategory = data[i + 1]?.category ?? null;
+      completionLogs.currentTitle = data[i + 1]?.titles?.[0] ?? null;
 
       saveLog(completionLogs);
 
-      if (completionLogs.currentTitle === null) break;
+      if (completionLogs.currentCategory === null) break;
+    }
+  } catch (err) {
+    logStep("FATAL", err.message);
+    console.error(err.stack);
+  } finally {
+    /* =========================
+       🧹 CLEANUP (ALWAYS RUNS)
+    ========================= */
+    logStep("CLEANUP", "Closing resources...");
+
+    try {
+      if (browser) await browser.close();
+    } catch (e) {
+      logStep("CLEANUP", "Browser close failed");
     }
 
-    completionLogs.currentCategory =
-      data[i + 1]?.category ?? null;
-    completionLogs.currentTitle =
-      data[i + 1]?.titles?.[0] ?? null;
+    try {
+      if (anonymizedProxy) {
+        await proxyChain.closeAnonymizedProxy(anonymizedProxy, true);
+      }
+    } catch (e) {
+      logStep("CLEANUP", "Proxy close failed");
+    }
 
-    saveLog(completionLogs);
-
-    if (completionLogs.currentCategory === null) break;
+    logStep("END", "Scraping finished");
   }
-
-  /* =========================
-     🧹 CLEANUP
-  ========================= */
-  await browser.close();
-  await proxyChain.closeAnonymizedProxy(anonymizedProxy, true);
-
-  logStep("END", "Scraping finished");
 }
+
+let isShuttingDown = false;
+
+async function gracefulExit(signal) {
+  if (isShuttingDown) return;
+  isShuttingDown = true;
+
+  console.log(`🛑 Received ${signal}, exiting...`);
+
+  try {
+    await browser?.close();
+  } catch {}
+
+  try {
+    await proxyChain.closeAnonymizedProxy(anonymizedProxy, true);
+  } catch {}
+
+  process.exit(0);
+}
+
+process.on("SIGTERM", gracefulExit);
+process.on("SIGINT", gracefulExit);
 
 /* =========================
    🧯 GLOBAL ERROR
 ========================= */
-run().catch((err) => {
-  saveLog(completionLogs);
-  console.error("UNHANDLED ERROR:", err);
-});
+run();

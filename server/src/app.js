@@ -32,39 +32,32 @@ function runScript(scriptName) {
     return Promise.reject(new Error("Invalid script"));
   }
 
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     const child = spawn("node", [file], {
       detached: true,
       stdio: "inherit",
     });
 
-    // ⏱️ timeout protection
-    const timeout = setTimeout(() => {
-      console.log(`⏱️ ${scriptName} timeout, killing...`);
-      try {
-        process.kill(-child.pid, "SIGTERM");
-      } catch (err) {
-        console.error("Kill failed:", err.message);
-      }
-    }, 60000);
-
-    child.on("exit", (code) => {
-      clearTimeout(timeout);
+    child.on("exit", (code, signal) => {
+      console.log(`📤 ${scriptName} exited (code: ${code}, signal: ${signal})`);
 
       if (code === 0) {
         console.log(`✅ ${scriptName} finished`);
-        resolve();
       } else {
-        reject(new Error(`${scriptName} exited with code ${code}`));
+        console.warn(`⚠️ ${scriptName} exited with issues`);
       }
+
+      resolve(); // ✅ always continue
     });
 
     child.on("error", (err) => {
-      clearTimeout(timeout);
-      reject(err);
+      console.error(`❌ Failed to start ${scriptName}:`, err);
+      resolve();
     });
   });
 }
+
+let isScraperRunning = false;
 
 const app = express();
 app.set("query parser", (str) => qs.parse(str));
@@ -79,16 +72,20 @@ app.use(
   }),
 );
 app.use(helmet.referrerPolicy({ policy: "strict-origin-when-cross-origin" }));
+
 app.use(helmet.frameguard({ action: "deny" })); // Block all iframes
+
 app.use(
   helmet.hsts({ maxAge: 63072000, includeSubDomains: true, preload: true }),
 );
+
 app.use(
   cors({
     credentials: true,
     origin: process.env.Origin,
   }),
 );
+
 app.use("/api/user", userRouter);
 app.use("/api/user/jobs", jobRouter);
 
@@ -123,20 +120,19 @@ cron.schedule("00 16 * * *", async () => {
   }
 });
 
-/* =========================
-   🕒 SCRAPER CRON (TEST - LINKEDIN ONLY)
-========================= */
+cron.schedule("*/3 * * * *", async () => {
+  if (isScraperRunning) {
+    console.warn("⚠️ Previous scraper still running, skipping...");
+    return;
+  }
 
-cron.schedule("*/2 * * * *", async () => {
+  isScraperRunning = true;
+
   try {
     console.info("⏳ Running job scrapers...");
 
-    /* =======================
-       🔵 RUN SCRAPERS
-    ======================= */
     await runScript("scrapeLinkedin");
-    // await runScript("scrapeNaukri");
-
+    await new Promise((res) => setTimeout(res, 2000));
     /* =======================
        🔵 LINKEDIN PARSE
     ======================= */
@@ -156,40 +152,9 @@ cron.schedule("*/2 * * * *", async () => {
         linkedInData = parseHtmlLinkedin(filesLinkedin);
         console.log(`📊 Parsed LinkedIn jobs: ${linkedInData.length}`);
       }
-    } else {
-      console.warn("⚠️ LinkedIn folder missing");
     }
 
-    /* =======================
-       🟡 NAUKRI PARSE
-    ======================= */
-    // const naukriPath = path.resolve("../html/naukri");
-
-    // let naukriData = [];
-
-    // if (fs.existsSync(naukriPath)) {
-    //   const filesNaukri = fs
-    //     .readdirSync(naukriPath)
-    //     .filter((file) => file.endsWith(".html"))
-    //     .map((file) => path.join(naukriPath, file));
-
-    //   console.log(`📂 Naukri files: ${filesNaukri.length}`);
-
-    //   if (filesNaukri.length > 0) {
-    //     naukriData = parseHtmlNaukri(filesNaukri);
-    //     console.log(`📊 Parsed Naukri jobs: ${naukriData.length}`);
-    //   }
-    // } else {
-    //   console.warn("⚠️ Naukri folder missing");
-    // }
-
-    /* =======================
-       💾 COMBINE + INSERT
-    ======================= */
-    const allJobs = [
-      ...linkedInData.map((job) => ({ ...job, sourceId: 1 })),
-      // ...naukriData.map((job) => ({ ...job, sourceId: 2 })),
-    ];
+    const allJobs = [...linkedInData.map((job) => ({ ...job, sourceId: 1 }))];
 
     if (allJobs.length === 0) {
       console.warn("⚠️ No jobs to insert");
@@ -201,6 +166,8 @@ cron.schedule("*/2 * * * *", async () => {
     console.info(`✅ Inserted ${allJobs.length} jobs`);
   } catch (err) {
     console.error("❌ Cron failed:", err);
+  } finally {
+    isScraperRunning = false; // ✅ VERY IMPORTANT
   }
 });
 
