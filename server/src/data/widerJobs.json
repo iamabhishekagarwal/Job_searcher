@@ -1,34 +1,5 @@
 [
   {
-    "category": "Intern & Apprenticeship Programs",
-    "titles": [
-      "Software Engineer Intern",
-      "Frontend Developer Intern",
-      "Backend Developer Intern",
-      "Full Stack Developer Intern",
-      "Data Analyst Intern",
-      "Data Scientist Intern",
-      "Machine Learning Intern",
-      "Cloud Intern",
-      "DevOps Intern",
-      "Cybersecurity Intern",
-      "QA Intern",
-      "Mobile Developer Intern",
-      "Software Engineer Apprentice",
-      "Developer Apprentice",
-      "Graduate Apprentice",
-      "Graduate Engineer Trainee",
-      "Engineering Trainee",
-      "Technical Trainee",
-      "IT Trainee",
-      "Management Trainee Technology",
-      "Apprenticeship Program Technology",
-      "Graduate Program Technology",
-      "Entry Level Software Engineer",
-      "Fresher Software Engineer"
-    ]
-  },
-  {
     "category": "Software & Web Engineering",
     "titles": [
       "Software Engineer",
@@ -36,31 +7,7 @@
       "Backend Developer",
       "Full Stack Developer",
       "Web Developer",
-      "DevOps Engineer",
       "Cloud Engineer"
-    ]
-  },
-  {
-    "category": "Data & AI",
-    "titles": [
-      "Data Analyst",
-      "Data Scientist",
-      "Machine Learning Engineer",
-      "AI Engineer",
-      "Data Engineer",
-      "Business Intelligence Developer",
-      "Data Visualization Specialist"
-    ]
-  },
-  {
-    "category": "Security & Infrastructure",
-    "titles": [
-      "Cybersecurity Analyst",
-      "Security Engineer",
-      "Network Security Engineer",
-      "Systems Engineer",
-      "Network Engineer",
-      "Cloud Security Engineer"
     ]
   }
 ]

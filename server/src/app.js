@@ -16,23 +16,61 @@ import { addJobs } from "./helper/addInstance.js";
 import fs from "fs";
 import { link } from "fs";
 import path from "path";
+import { spawn } from "child_process";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const ROOT = path.resolve(__dirname, "../..");
 
 function runScript(scriptName) {
-  const child = exec(`npm run ${scriptName}`, (error, stdout, stderr) => {
-    if (error) {
-      console.error(`❌ Error running ${scriptName}:`, error);
-      return;
-    }
-    if (stderr) {
-      console.error(`⚠️ ${scriptName} stderr:`, stderr);
-    }
-    console.log(`📄 ${scriptName} output:\n${stdout}`);
-  });
-  setTimeout(() => {
-    child.kill();
-  }, 100000);
+  const scripts = {
+    scrapeLinkedin: "./src/scrapers/linkedinScraper.js",
+    scrapeNaukri: "./src/scrapers/naukriScraper.js",
+  };
 
+  const file = scripts[scriptName];
+
+  if (!file) {
+    return Promise.reject(new Error("Invalid script"));
+  }
+
+  return new Promise((resolve) => {
+    const child = spawn("node", [file], {
+      stdio: ["ignore", "pipe", "pipe"], // 👈 capture stdout & stderr
+    });
+
+    // ✅ PRINT STDOUT
+    child.stdout.on("data", (data) => {
+      console.log(`📘 [${scriptName}] ${data.toString().trim()}`);
+    });
+
+    // ❌ PRINT ERRORS
+    child.stderr.on("data", (data) => {
+      console.error(`❌ [${scriptName}] ${data.toString().trim()}`);
+    });
+
+    child.on("exit", (code, signal) => {
+      console.log(`📤 ${scriptName} exited (code: ${code}, signal: ${signal})`);
+
+      if (code === 0) {
+        console.log(`✅ ${scriptName} finished`);
+      } else {
+        console.warn(`⚠️ ${scriptName} exited with issues`);
+      }
+
+      resolve();
+    });
+
+    child.on("error", (err) => {
+      console.error(`❌ Failed to start ${scriptName}:`, err);
+      resolve();
+    });
+  });
 }
+
+let isScraperRunning = false;
 
 const app = express();
 app.set("query parser", (str) => qs.parse(str));
@@ -47,16 +85,20 @@ app.use(
   }),
 );
 app.use(helmet.referrerPolicy({ policy: "strict-origin-when-cross-origin" }));
+
 app.use(helmet.frameguard({ action: "deny" })); // Block all iframes
+
 app.use(
   helmet.hsts({ maxAge: 63072000, includeSubDomains: true, preload: true }),
 );
+
 app.use(
   cors({
     credentials: true,
     origin: process.env.Origin,
   }),
 );
+
 app.use("/api/user", userRouter);
 app.use("/api/user/jobs", jobRouter);
 
@@ -77,29 +119,27 @@ cron.schedule("10 4 * * *", async () => {
 
     console.log(`Deleted ${result.count} jobs older than 30 days`);
   } catch (err) {
-    console.error('Error deleting old jobs:', err);
+    console.error("Error deleting old jobs:", err);
   }
 });
 
-/* =========================
-   🕒 SCRAPER CRON (TEST - LINKEDIN ONLY)
-========================= */
+cron.schedule("52 15 * * *", async () => {
+  if (isScraperRunning) {
+    console.warn("⚠️ Previous scraper still running, skipping...");
+    return;
+  }
 
-cron.schedule("0 */2 * * *", async () => {
+  isScraperRunning = true;
+
   try {
     console.info("⏳ Running job scrapers...");
 
-    /* =======================
-       🔵 RUN SCRAPERS
-    ======================= */
     await runScript("scrapeLinkedin");
-    await runScript("scrapeNaukri");
-
+    await new Promise((res) => setTimeout(res, 2000));
     /* =======================
        🔵 LINKEDIN PARSE
     ======================= */
-    const linkedinPath = path.resolve("../html/linkedIn");
-
+    const linkedinPath = path.join(ROOT, "html/linkedIn");
     let linkedInData = [];
 
     if (fs.existsSync(linkedinPath)) {
@@ -114,52 +154,19 @@ cron.schedule("0 */2 * * *", async () => {
         linkedInData = parseHtmlLinkedin(filesLinkedin);
         console.log(`📊 Parsed LinkedIn jobs: ${linkedInData.length}`);
       }
-    } else {
-      console.warn("⚠️ LinkedIn folder missing");
     }
 
-    /* =======================
-       🟡 NAUKRI PARSE
-    ======================= */
-    const naukriPath = path.resolve("../html/naukri");
-
-    let naukriData = [];
-
-    if (fs.existsSync(naukriPath)) {
-      const filesNaukri = fs
-        .readdirSync(naukriPath)
-        .filter((file) => file.endsWith(".html"))
-        .map((file) => path.join(naukriPath, file));
-
-      console.log(`📂 Naukri files: ${filesNaukri.length}`);
-
-      if (filesNaukri.length > 0) {
-        naukriData = parseHtmlNaukri(filesNaukri);
-        console.log(`📊 Parsed Naukri jobs: ${naukriData.length}`);
-      }
-    } else {
-      console.warn("⚠️ Naukri folder missing");
-    }
-
-    /* =======================
-       💾 COMBINE + INSERT
-    ======================= */
-    const allJobs = [
-      ...linkedInData.map((job) => ({ ...job, sourceId: 1 })),
-      ...naukriData.map((job) => ({ ...job, sourceId: 2 })),
-    ];
+    const allJobs = [...linkedInData.map((job) => ({ ...job, sourceId: 1 }))];
 
     if (allJobs.length === 0) {
       console.warn("⚠️ No jobs to insert");
       return;
     }
-
     await addJobs(allJobs);
-
-    console.info(`✅ Inserted ${allJobs.length} jobs`);
-
   } catch (err) {
     console.error("❌ Cron failed:", err);
+  } finally {
+    isScraperRunning = false; // ✅ VERY IMPORTANT
   }
 });
 
