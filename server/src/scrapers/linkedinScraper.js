@@ -5,7 +5,12 @@ import StealthPlugin from "puppeteer-extra-plugin-stealth";
 import proxyChain from "proxy-chain";
 import dotenv from "dotenv";
 import { setTimeout as sleep } from "node:timers/promises";
+import { fileURLToPath } from "url";
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const ROOT = path.resolve(__dirname, "../../..");
 dotenv.config();
 
 /* =========================
@@ -25,9 +30,8 @@ puppeteer.use(
 /* =========================
    📁 PATHS
 ========================= */
-const LOG_PATH = "./../logs/linkedin.json";
-const HTML_DIR = "./../html/linkedIn";
-
+const LOG_PATH = path.join(ROOT, "logs/linkedin.json");
+const HTML_DIR = path.join(ROOT, "html/linkedIn");
 /* =========================
    🧠 LOGGER
 ========================= */
@@ -103,6 +107,9 @@ async function run() {
     /* =========================
        🔁 YOUR EXISTING LOOP
     ========================= */
+
+    let resumeCategory = !completionLogs.currentCategory;
+    let resumeTitle = !completionLogs.currentTitle;
 
     for (let i = 0; i < data.length; i++) {
       const section = data[i];
@@ -355,4 +362,7 @@ process.on("SIGINT", gracefulExit);
 /* =========================
    🧯 GLOBAL ERROR
 ========================= */
-run();
+run().catch((err) => {
+  console.error("UNHANDLED ERROR:", err);
+  process.exit(1);
+});

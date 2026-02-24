@@ -17,6 +17,12 @@ import fs from "fs";
 import { link } from "fs";
 import path from "path";
 import { spawn } from "child_process";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const ROOT = path.resolve(__dirname, "../..");
 
 function runScript(scriptName) {
   const scripts = {
@@ -32,8 +38,17 @@ function runScript(scriptName) {
 
   return new Promise((resolve) => {
     const child = spawn("node", [file], {
-      detached: true,
-      stdio: "inherit",
+      stdio: ["ignore", "pipe", "pipe"], // 👈 capture stdout & stderr
+    });
+
+    // ✅ PRINT STDOUT
+    child.stdout.on("data", (data) => {
+      console.log(`📘 [${scriptName}] ${data.toString().trim()}`);
+    });
+
+    // ❌ PRINT ERRORS
+    child.stderr.on("data", (data) => {
+      console.error(`❌ [${scriptName}] ${data.toString().trim()}`);
     });
 
     child.on("exit", (code, signal) => {
@@ -45,7 +60,7 @@ function runScript(scriptName) {
         console.warn(`⚠️ ${scriptName} exited with issues`);
       }
 
-      resolve(); // ✅ always continue
+      resolve();
     });
 
     child.on("error", (err) => {
@@ -108,7 +123,7 @@ cron.schedule("10 4 * * *", async () => {
   }
 });
 
-cron.schedule("*/ * * * *", async () => {
+cron.schedule("52 15 * * *", async () => {
   if (isScraperRunning) {
     console.warn("⚠️ Previous scraper still running, skipping...");
     return;
@@ -124,8 +139,7 @@ cron.schedule("*/ * * * *", async () => {
     /* =======================
        🔵 LINKEDIN PARSE
     ======================= */
-    const linkedinPath = path.resolve("../html/linkedIn");
-
+    const linkedinPath = path.join(ROOT, "html/linkedIn");
     let linkedInData = [];
 
     if (fs.existsSync(linkedinPath)) {
@@ -148,10 +162,7 @@ cron.schedule("*/ * * * *", async () => {
       console.warn("⚠️ No jobs to insert");
       return;
     }
-
     await addJobs(allJobs);
-
-    console.info(`✅ Inserted ${allJobs.length} jobs`);
   } catch (err) {
     console.error("❌ Cron failed:", err);
   } finally {
