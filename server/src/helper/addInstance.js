@@ -25,7 +25,9 @@ function mapToJobModel(job, employerId = 1) {
     jobType: job.jobType || "Not Mentioned",
     description: job.description || "",
     salaryRange: job.salaryRange || null,
-    postedAt: job.postedAt || null,
+    postedAt: job.postedAt
+  ? new Date(job.postedAt + "T00:00:00Z")
+  : null,
     deadline: null,
     isActive: true,
     employerId,
@@ -55,8 +57,6 @@ function mapToJobModel(job, employerId = 1) {
 export async function addJobs(jobsArray, employerId = 1) {
   try {
     // 🔥 FILTER HERE
-    console.log("DEBUG postedAt values:");
-jobsArray.slice(0, 10).forEach(j => console.log(j.postedAt));
 console.log("Filtering jobs posted within the last 24 hours..."); 
     const filteredJobs = jobsArray.filter(job =>
       isWithin24Hours(job.postedAt)
