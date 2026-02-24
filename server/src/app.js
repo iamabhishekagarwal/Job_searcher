@@ -19,21 +19,27 @@ import fs from "fs";
 import { link } from "fs";
 import path from "path";
 
+import { spawn } from "child_process";
+
 function runScript(scriptName) {
-  const child = exec(`npm run ${scriptName}`, (error, stdout, stderr) => {
-    if (error) {
-      console.error(`❌ Error running ${scriptName}:`, error);
-      return;
-    }
-    if (stderr) {
-      console.error(`⚠️ ${scriptName} stderr:`, stderr);
-    }
-    console.log(`📄 ${scriptName} output:\n${stdout}`);
+  const child = spawn("npm", ["run", scriptName], {
+    detached: true, // 👈 important
+    stdio: "inherit",
   });
-  setTimeout(() => {
-    child.kill();
+
+  const timeout = setTimeout(() => {
+    console.log("⏱️ Killing full process tree...");
+
+    try {
+      process.kill(-child.pid, "SIGKILL"); // 👈 kills ALL children
+    } catch (err) {
+      console.error("Kill failed:", err.message);
+    }
   }, 100000);
 
+  child.on("exit", () => {
+    clearTimeout(timeout);
+  });
 }
 
 const app = express();
@@ -89,7 +95,7 @@ cron.schedule("00 16 * * *", async () => {
 
     console.log(`Deleted ${result.count} jobs older than 30 days`);
   } catch (err) {
-    console.error('Error deleting old jobs:', err);
+    console.error("Error deleting old jobs:", err);
   }
 });
 
@@ -169,7 +175,6 @@ cron.schedule("* * * * *", async () => {
     await addJobs(allJobs);
 
     console.info(`✅ Inserted ${allJobs.length} jobs`);
-
   } catch (err) {
     console.error("❌ Cron failed:", err);
   }
