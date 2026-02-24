@@ -108,7 +108,7 @@ cron.schedule("10 4 * * *", async () => {
   }
 });
 
-cron.schedule("*/3 * * * *", async () => {
+cron.schedule("*/ * * * *", async () => {
   if (isScraperRunning) {
     console.warn("⚠️ Previous scraper still running, skipping...");
     return;
